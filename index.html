@@ -4,10 +4,10 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Christmas &amp; Permanent Lighting Installation | Elf Decor Pro</title>
-<meta name="description" content="Full-service Christmas light rental, permanent lighting, and landscape lighting. We design, install, maintain, take down, and store it. Free quote, 10% off.">
+<meta name="description" content="Christmas light rental, permanent lighting, and landscape lighting in MA, NH, and RI. We design, install, maintain, take down, and store it. Free quote.">
 <meta name="theme-color" content="#0E1A0B">
 <meta property="og:title" content="Stunning Lights, Fully Installed. You Never Touch a Ladder.">
-<meta property="og:description" content="Full-service Christmas light rental, permanent lighting, and landscape lighting. We design, install, maintain, take down, and store it. Free quote, 10% off.">
+<meta property="og:description" content="Christmas light rental, permanent lighting, and landscape lighting in MA, NH, and RI. We design, install, maintain, take down, and store it. Free quote.">
 <meta property="og:type" content="website">
 <meta property="og:image" content="assets/logo/elf-logo-primary.png">
 <meta name="twitter:card" content="summary_large_image">
@@ -474,6 +474,66 @@ section{position:relative}
 .svc.rev .svc-body{order:1}
 .svc.rev .svc-media{order:2}
 
+/* ===== COMPARADOR ANTES/DEPOIS (arrastar) - Warm White x RGBW =====
+   Vive dentro do .svc-body dos cards Permanent e Landscape.
+   Degrada sozinho: enquanto as fotos de assets/compare/ nao existirem, o slot
+   mostra o gradiente do design system + rotulos + marcador [TO CONFIRM].
+   As <img> nascem SEM src (so data-src) e o JS so promove a src depois de um
+   HEAD 200 - assim nao ha imagem quebrada nem erro de console no preview. */
+.cmp{margin:2px 0 20px}
+.cmp-box{--pos:50%;position:relative;width:100%;aspect-ratio:16/9;border-radius:14px;overflow:hidden;
+  border:1px solid rgba(255,206,123,.5);box-shadow:0 10px 30px rgba(34,48,28,.18);
+  background:var(--night);cursor:ew-resize;touch-action:pan-y;
+  user-select:none;-webkit-user-select:none;-webkit-tap-highlight-color:transparent}
+.cmp-slot{position:absolute;inset:0;overflow:hidden}
+.cmp-slot.s-white{background:linear-gradient(150deg,#0E1A0B 0%,#1B2E18 46%,#335525 100%)}
+.cmp-slot.s-rgbw{background:linear-gradient(150deg,#25401B 0%,#3B2350 52%,#971B2F 100%)}
+.cmp-slot::before{content:"";position:absolute;inset:0;z-index:1;pointer-events:none;
+  background:radial-gradient(circle at 32% 26%,rgba(255,206,123,.4),transparent 60%),
+             radial-gradient(circle at 74% 80%,rgba(151,27,47,.34),transparent 62%)}
+.cmp-slot.s-rgbw::before{
+  background:radial-gradient(circle at 24% 28%,rgba(126,102,255,.46),transparent 60%),
+             radial-gradient(circle at 76% 74%,rgba(64,196,190,.4),transparent 60%),
+             radial-gradient(circle at 52% 52%,rgba(255,206,123,.24),transparent 66%)}
+.cmp-slot.has-img::before{opacity:0}
+.cmp-slot img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:center;z-index:2;pointer-events:none}
+/* sem src (foto ainda nao existe) o Chrome desenharia o ALT por cima do gradiente */
+.cmp-slot img:not([src]){display:none}
+/* a camada de cima e recortada por clip-path: a imagem NAO escala junto (nada de sync de largura) */
+.cmp-clip{position:absolute;inset:0;z-index:3;clip-path:inset(0 calc(100% - var(--pos)) 0 0)}
+.cmp-label{position:absolute;top:12px;z-index:6;font-family:'Cinzel',serif;font-size:10px;font-weight:700;
+  letter-spacing:1.6px;text-transform:uppercase;color:#FFF7EC;background:rgba(14,26,11,.62);
+  border:1px solid rgba(255,206,123,.45);padding:5px 12px;border-radius:50px;
+  text-shadow:0 1px 4px rgba(0,0,0,.6);pointer-events:none;white-space:nowrap}
+.cmp-label.l{left:12px}
+.cmp-label.r{right:12px}
+.cmp-note{position:absolute;left:12px;bottom:12px;z-index:6;display:flex;flex-wrap:wrap;align-items:center;gap:8px;pointer-events:none}
+.cmp-note .ph-tag{font-family:'Cinzel',serif;font-size:9.5px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;
+  color:#FFF7EC;background:rgba(14,26,11,.6);border:1px solid rgba(255,206,123,.4);padding:4px 10px;border-radius:50px}
+.cmp-note .tc{font-size:10.5px;color:#FFE7C2;background:rgba(14,26,11,.62);border-bottom-color:var(--glow);text-shadow:0 1px 3px rgba(0,0,0,.5)}
+.cmp-box.has-both .cmp-note{display:none}
+.cmp-handle{position:absolute;top:0;bottom:0;left:var(--pos);width:3px;margin-left:-1.5px;z-index:7;
+  background:linear-gradient(180deg,rgba(255,206,123,.28),var(--glow) 20%,var(--glow) 80%,rgba(255,206,123,.28));
+  cursor:ew-resize;touch-action:pan-y}
+.cmp-grip{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:44px;height:44px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;background:var(--grad-glow-claro);
+  box-shadow:0 4px 16px rgba(14,26,11,.45),0 0 0 1px rgba(255,206,123,.65)}
+.cmp-grip svg{width:22px;height:22px;fill:none;stroke:#3A2708;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
+.cmp-handle:focus-visible{outline:3px solid var(--glow);outline-offset:2px}
+.cmp-cap{margin:10px 2px 0;font-size:13px;line-height:1.6;font-style:italic;color:var(--ink2)}
+.svc.night .cmp-cap{color:var(--glow)}
+@media(max-width:700px){
+  .cmp-box{aspect-ratio:4/3}
+  .cmp-label{font-size:9px;letter-spacing:1.2px;padding:4px 9px;top:10px}
+  .cmp-label.l{left:10px}
+  .cmp-label.r{right:10px}
+  .cmp-note{left:10px;right:10px;bottom:10px;gap:6px}
+}
+/* abaixo de 480 o par "Preview + [TO CONFIRM]" quebrava em 2 linhas e encostava
+   na base; a pill Preview e redundante (os rotulos ja dizem o que e) */
+@media(max-width:480px){.cmp-note .ph-tag{display:none}}
+@media(prefers-reduced-motion:reduce){.cmp-box{scroll-behavior:auto}}
+
 /* ===== PROCESSO - TIMELINE COM FILL NO SCROLL (ref: KETOX/DIOGO .pillars) ===== */
 .sec-process{background:var(--cream);isolation:isolate;padding-top:124px}
 .proc-split{display:grid;grid-template-columns:.8fr 1.2fr;gap:52px;align-items:start;margin-top:26px}
@@ -694,6 +754,10 @@ section{position:relative}
 .quote-pts li .ck{flex-shrink:0;width:24px;height:24px;border-radius:50%;background:var(--grad-glow-claro);display:flex;align-items:center;justify-content:center;margin-top:1px;box-shadow:0 4px 10px rgba(255,206,123,.3)}
 .quote-pts li .ck svg{width:12px;height:12px;stroke:#3A2708;stroke-width:3.2;fill:none}
 .quote-alt{font-size:14px;color:var(--on-dark2);line-height:1.6}
+/* telefone real do cliente: precisa LER como link clicavel em fundo escuro */
+.tel-lnk{color:var(--glow);font-weight:600;white-space:nowrap;border-bottom:1px solid rgba(255,206,123,.45);transition:color .25s,border-color .25s}
+.tel-lnk:hover{color:#FFE7C2;border-bottom-color:var(--glow)}
+.quote-alt .tel-lnk{display:inline-block;padding:9px 0;min-height:44px}
 .form-card{position:relative;background:linear-gradient(150deg,rgba(19,35,18,.94) 0%,rgba(27,46,24,.9) 100%);border-radius:24px;padding:34px 32px 36px;box-shadow:0 26px 64px rgba(0,0,0,.5)}
 .form-card::before{content:"";position:absolute;inset:0;border-radius:24px;padding:1.8px;
   background:conic-gradient(from var(--angle),rgba(255,206,123,0) 0deg,rgba(255,206,123,0) 190deg,var(--wine) 250deg,var(--terra) 296deg,var(--glow) 324deg,var(--terra) 346deg,rgba(255,206,123,0) 360deg);
@@ -908,13 +972,13 @@ section{position:relative}
       <div class="hero-copy sr-hidden">
         <span class="pretitle">
           <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v2M12 19v2M4.2 4.2l1.4 1.4M18.4 18.4l1.4 1.4M3 12h2M19 12h2M4.2 19.8l1.4-1.4M18.4 5.6l1.4-1.4"/><circle cx="12" cy="12" r="4"/></svg>
-          Christmas Lighting &middot; Permanent Lighting &middot; Landscape Lighting &mdash; <span class="tc">[TO CONFIRM: City / Service Area]</span>
+          Christmas Lighting &middot; Permanent Lighting &middot; Landscape Lighting &mdash; Massachusetts, New Hampshire &amp; Rhode Island
         </span>
         <h1 id="hero-h1">Stunning Lights, Fully Installed. <span class="hl">You Never Touch a Ladder.</span></h1>
         <p class="sub">From custom design to takedown and storage, we handle every step. <strong>Christmas lights are rented</strong>, so there's nothing to buy and nothing to store. And when the season ends, we keep your property glowing all year with permanent and landscape lighting.</p>
         <div class="hero-cta">
           <a href="#quote" class="btn lg gold">Get Your Free Quote</a>
-          <a href="#quote" class="btn ghost">Call Us: <span class="tc">[TO CONFIRM: Phone]</span></a>
+          <a href="tel:+17816058462" class="btn ghost">Call Us: (781) 605-8462</a>
         </div>
         <p class="micro">Free quote. No obligation. Most projects are scheduled within days of approval. <span class="tc">[TO CONFIRM: exact timeframe]</span></p>
       </div>
@@ -1022,7 +1086,7 @@ section{position:relative}
         <h3>Doing it yourself</h3>
         <ul>
           <li><span class="mk" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></span>Guessing at products, colors, and quantities</li>
-          <li><span class="mk" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></span>Your Saturday, your ladder, your risk</li>
+          <li><span class="mk" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></span>Your weekends, your ladder, your risk</li>
           <li><span class="mk" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></span>Half the strand goes dark in week two</li>
           <li><span class="mk" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></span>Takedown in January, in the cold</li>
           <li><span class="mk" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></span>Tangled bins living in your garage all year</li>
@@ -1073,14 +1137,14 @@ section{position:relative}
           <p>You rent the lights, not buy them. We design the display for your property, install it, keep it working all season long, take it down when the season ends, and store everything for you until next year.</p>
           <p>No upfront product cost. No bins in the garage. No January ladder.</p>
           <ul class="svc-bul">
-            <li><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>Custom design built for your roofline, trees, and landscape</li>
+            <li><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>Custom design built for your roofline, trees, and bushes</li>
             <li><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>Preview of your display before installation</li>
             <li><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>Professional installation with clean, hidden runs</li>
             <li><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>In-season maintenance for installation-related issues, at no extra cost</li>
             <li><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>Takedown at the end of the season</li>
             <li><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>Off-season storage handled by us</li>
           </ul>
-          <dl class="svc-ideal"><dt>Ideal for</dt><dd>Homes, businesses, storefronts, and public squares.</dd></dl>
+          <dl class="svc-ideal"><dt>Ideal for</dt><dd>Residential, commercial and municipals</dd></dl>
           <p class="svc-micro">Because it's a rental, you can change the design next season without replacing anything you own.</p>
           <a href="#quote" class="btn gold">Get Your Free Quote</a>
         </div>
@@ -1096,16 +1160,39 @@ section{position:relative}
         <div class="svc-body">
           <span class="svc-badge">Purchase + Installation</span>
           <h3>Permanent Lighting</h3>
-          <p>Architectural RGBW lighting installed once and used all year. Warm white for everyday evenings, seasonal colors when you want them, game-day colors when it matters, all controlled from your phone.</p>
+          <p>Architectural RGBW lighting installed once and used all year. Warm white for everyday evenings, seasonal colors when you want them, game-day colors when it matters, all controlled from the app on your phone over Wi-Fi or Bluetooth.</p>
           <p>Discreet during the day. Striking at night. And it never comes down.</p>
           <ul class="svc-bul">
             <li><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>RGBW systems supplied and installed by our team</li>
             <li><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>Rooflines, facades, backyards, and outdoor living areas</li>
             <li><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>Millions of color options for holidays, events, and everyday light</li>
+            <li><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>Wi-Fi and Bluetooth control from the app on your phone</li>
             <li><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>Clean, low-profile installation designed to disappear in daylight</li>
             <li><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>Optional maintenance plan with warranty coverage (see Guarantee)</li>
           </ul>
-          <dl class="svc-ideal"><dt>Ideal for</dt><dd>Homeowners and businesses who want the look built in permanently instead of installed every December.</dd></dl>
+          <dl class="svc-ideal"><dt>Ideal for</dt><dd>Residential, commercial and municipals</dd></dl>
+
+          <!-- COMPARADOR A: Warm White x RGBW Color -->
+          <figure class="cmp">
+            <div class="cmp-box" data-cmp>
+              <div class="cmp-slot s-rgbw" data-slot="after">
+                <img data-src="assets/compare/compare-permanent-rgbw.jpg" alt="The same home facade lit in RGBW color with permanent architectural lighting">
+              </div>
+              <div class="cmp-clip">
+                <div class="cmp-slot s-white" data-slot="before">
+                  <img data-src="assets/compare/compare-permanent-white.jpg" alt="Home facade lit in warm white with permanent architectural lighting">
+                </div>
+              </div>
+              <span class="cmp-label l">Warm White</span>
+              <span class="cmp-label r">RGBW Color</span>
+              <div class="cmp-note"><span class="ph-tag">Preview</span><span class="tc">[TO CONFIRM] placeholder photo</span></div>
+              <div class="cmp-handle" role="slider" tabindex="0" aria-label="Compare warm white and RGBW color on the same home. Use the left and right arrow keys." aria-valuemin="0" aria-valuemax="100" aria-valuenow="50" aria-valuetext="50 percent warm white, 50 percent RGBW color">
+                <span class="cmp-grip" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M9.5 8L5.5 12l4 4M14.5 8l4 4-4 4"/></svg></span>
+              </div>
+            </div>
+            <figcaption class="cmp-cap">Same house, same system. Drag to switch the mood.</figcaption>
+          </figure>
+
           <a href="#quote" class="btn">Get Your Free Quote</a>
         </div>
       </article>
@@ -1122,13 +1209,36 @@ section{position:relative}
           <h3>Garden &amp; Landscape Lighting</h3>
           <p>The lighting that makes a property feel finished. Bistro strings over the patio, uplighting on the trees, soft path and garden lighting that turns your outdoor space into somewhere you actually want to be after dark.</p>
           <ul class="svc-bul">
-            <li><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>Bistro and cafe string lighting for patios and event spaces</li>
-            <li><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>Landscape and garden lighting, uplighting, and path lighting</li>
+            <li><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>Bistro string lights for patios and event spaces</li>
+            <li><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>Landscape, garden, uplighting, and path lighting with RGBW color options</li>
+            <li><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>Smart lighting options with RGBW color control, Wi-Fi, and Bluetooth connectivity</li>
             <li><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>Designs for homes, businesses, and public squares</li>
             <li><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>Built to handle the outdoors, installed to look intentional</li>
             <li><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>Optional maintenance plan with warranty coverage (see Guarantee)</li>
           </ul>
-          <dl class="svc-ideal"><dt>Ideal for</dt><dd>Backyards, patios, restaurants, storefronts, and commercial properties.</dd></dl>
+          <dl class="svc-ideal"><dt>Ideal for</dt><dd>Residential, commercial and municipals</dd></dl>
+
+          <!-- COMPARADOR B: Classic White x RGBW Color -->
+          <figure class="cmp">
+            <div class="cmp-box" data-cmp>
+              <div class="cmp-slot s-rgbw" data-slot="after">
+                <img data-src="assets/compare/compare-landscape-rgbw.jpg" alt="The same patio and garden lit in RGBW color with landscape lighting">
+              </div>
+              <div class="cmp-clip">
+                <div class="cmp-slot s-white" data-slot="before">
+                  <img data-src="assets/compare/compare-landscape-white.jpg" alt="Patio and garden lit in classic warm white with landscape lighting">
+                </div>
+              </div>
+              <span class="cmp-label l">Classic White</span>
+              <span class="cmp-label r">RGBW Color</span>
+              <div class="cmp-note"><span class="ph-tag">Preview</span><span class="tc">[TO CONFIRM] placeholder photo</span></div>
+              <div class="cmp-handle" role="slider" tabindex="0" aria-label="Compare classic white and RGBW color on the same patio. Use the left and right arrow keys." aria-valuemin="0" aria-valuemax="100" aria-valuenow="50" aria-valuetext="50 percent classic white, 50 percent RGBW color">
+                <span class="cmp-grip" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M9.5 8L5.5 12l4 4M14.5 8l4 4-4 4"/></svg></span>
+              </div>
+            </div>
+            <figcaption class="cmp-cap">Same patio, two moods. Drag to compare.</figcaption>
+          </figure>
+
           <a href="#quote" class="btn">Get Your Free Quote</a>
         </div>
       </article>
@@ -1207,8 +1317,8 @@ section{position:relative}
   <div class="wrap">
     <div class="center maxw sr-hidden">
       <span class="eyebrow sage">Why us</span>
-      <h2 id="why-h2">Why homeowners choose Elf Decor Pro</h2>
-      <p class="lead">We're not the biggest name in <span class="tc">[TO CONFIRM: City]</span>. We're the one that shows up, shows you the design first, and charges fairly for it.</p>
+      <h2 id="why-h2">Why clients choose Elf Decor Pro</h2>
+      <p class="lead">We're not the biggest name in Massachusetts, New Hampshire, or Rhode Island. We're the one that shows up, shows you the design first, and charges fairly for it.</p>
     </div>
     <div class="why-bento">
       <article class="why-card feat sr-hidden">
@@ -1427,8 +1537,8 @@ section{position:relative}
       <div class="about-body sr-hidden">
         <span class="eyebrow outline">About us</span>
         <h2 id="about-h2" style="margin:16px 0 18px">Newer name. Experienced hands.</h2>
-        <p><strong>Elf Decor Pro was built by a crew with more than ten years of hands-on lighting experience</strong>, from residential rooflines to commercial storefronts and public squares.</p>
-        <p>We started this company for a simple reason. We kept seeing homeowners pay premium prices to large companies and still end up with a generic display, no design input, and no one answering the phone in mid-December.</p>
+        <p><strong>Elf Decor Pro was built by a crew with more than ten years of hands-on lighting experience</strong> across residential, commercial, and municipal properties.</p>
+        <p>We started this company for a simple reason. We kept seeing property owners pay premium prices to large companies and still end up with a generic display, no design input, and no one answering the phone in mid-December.</p>
         <p>So we built the opposite. Every property gets its own design. Every client sees a preview before we install. Every season includes support, not just an installation date.</p>
         <p>We know we're the newer name on your list. That's exactly why we work like the project matters, because for us, it does.</p>
         <div class="about-badges">
@@ -1472,6 +1582,10 @@ section{position:relative}
         <div class="faq-ans">Yes, and it's one of the reasons people hire us. We create a design specific to your property and show you a preview of how it will look. You approve it, or ask for changes, before installation day.</div>
       </details>
       <details class="faq-item sr-hidden">
+        <summary>Can I control the permanent lighting from my phone?<span class="fq-ico" aria-hidden="true"></span></summary>
+        <div class="faq-ans">Yes. Permanent lighting is controlled from an app on your phone over Wi-Fi or Bluetooth. Warm white for everyday evenings, seasonal colors when you want them, and color changes whenever you feel like it.</div>
+      </details>
+      <details class="faq-item sr-hidden">
         <summary>You're a newer company. Why should I trust you with my property?<span class="fq-ico" aria-hidden="true"></span></summary>
         <div class="faq-ans">Fair question. The company is newer, but the crew behind it has 10+ years of hands-on lighting experience. We deliver the same standard of design and installation as the largest companies in the area, at fairer pricing, and we back it with in-season support. We're building a reputation right now, which means your project gets more attention, not less.</div>
       </details>
@@ -1493,11 +1607,11 @@ section{position:relative}
       </details>
       <details class="faq-item sr-hidden">
         <summary>Do you work with businesses, not just homes?<span class="fq-ico" aria-hidden="true"></span></summary>
-        <div class="faq-ans">Yes. We work with homes, businesses, storefronts, and public squares. Commercial projects get the same process: custom design, preview, installation, and support.</div>
+        <div class="faq-ans">Yes. We work with residential, commercial, and municipal properties. Commercial and municipal projects get the same process: custom design, preview, installation, and support.</div>
       </details>
       <details class="faq-item sr-hidden">
         <summary>What areas do you serve?<span class="fq-ico" aria-hidden="true"></span></summary>
-        <div class="faq-ans"><span class="tc w">[TO CONFIRM: Service area / cities covered]</span></div>
+        <div class="faq-ans">We serve Massachusetts, New Hampshire, and Rhode Island. Tell us where the property is and we'll confirm coverage with your free quote.</div>
       </details>
       <details class="faq-item sr-hidden">
         <summary>Is there a minimum project size?<span class="fq-ico" aria-hidden="true"></span></summary>
@@ -1530,7 +1644,7 @@ section{position:relative}
           <li><span class="ck" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></span>See your design before you commit</li>
           <li><span class="ck" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></span>Full service, from design to storage</li>
         </ul>
-        <p class="quote-alt">Prefer to talk it through? Call <span class="tc">[TO CONFIRM: Phone]</span> or email <span class="tc">[TO CONFIRM: Email]</span>.</p>
+        <p class="quote-alt">Prefer to talk it through? Call <a class="tel-lnk" href="tel:+17816058462">(781) 605-8462</a>.</p>
       </div>
       <div class="form-card sr-hidden">
         <div class="form-ok" id="formOk" role="status" aria-live="polite">
@@ -1540,7 +1654,7 @@ section{position:relative}
         </div>
         <form id="quoteForm" novalidate>
           <h3>Get Your Free Quote</h3>
-          <div class="form-alert" id="formErr" role="alert">Something didn't go through. Please check the required fields and try again, or call us at <span class="tc">[TO CONFIRM: Phone]</span>.</div>
+          <div class="form-alert" id="formErr" role="alert">Something didn't go through. Please check the required fields and try again, or call us at (781) 605-8462.</div>
           <div class="fgrid">
             <div class="field">
               <label for="f-name">Full Name <span class="req" aria-hidden="true">*</span></label>
@@ -1559,7 +1673,7 @@ section{position:relative}
             </div>
             <div class="field">
               <label for="f-addr">Property Address or City <span class="req" aria-hidden="true">*</span></label>
-              <input type="text" id="f-addr" name="address" placeholder="Where are we lighting?" required autocomplete="street-address">
+              <input type="text" id="f-addr" name="address" placeholder="Where are we lighting? (MA, NH, RI)" required autocomplete="street-address">
               <span class="err" id="e-addr"></span>
             </div>
             <div class="field full">
@@ -1612,9 +1726,8 @@ section{position:relative}
       <div>
         <h4>Contact</h4>
         <ul>
-          <li>Phone: <span class="tc">[TO CONFIRM]</span></li>
-          <li>Email: <span class="tc">[TO CONFIRM]</span></li>
-          <li>Service area: <span class="tc">[TO CONFIRM]</span></li>
+          <li>Phone: <a class="tel-lnk" href="tel:+17816058462">(781) 605-8462</a></li>
+          <li>Service area: Massachusetts, New Hampshire, Rhode Island</li>
           <li><span class="tc">[TO CONFIRM: Instagram / social links]</span></li>
         </ul>
       </div>
@@ -2679,6 +2792,98 @@ section{position:relative}
   /* ---------- ano do rodape ---------- */
   var yr = document.getElementById('yr');
   if(yr) yr.textContent = new Date().getFullYear();
+
+  /* ---------- COMPARADOR ANTES/DEPOIS (arrastar / touch / teclado) ----------
+     >>> CHAVE UNICA: vire para true quando os 4 JPG estiverem em assets/compare/
+         (compare-permanent-white/rgbw.jpg e compare-landscape-white/rgbw.jpg).
+         Ver assets/compare/LEIA-ME.md.
+     Com false as <img> ficam SEM src: zero request, zero 404, zero erro de
+     console, e o slot mostra o gradiente do design system + os rotulos + o
+     marcador [TO CONFIRM] placeholder photo. Nada de imagem quebrada.
+     Com true as URLs de data-src sao promovidas e o marcador some sozinho. */
+  var COMPARE_PHOTOS_READY = true;
+
+  Array.prototype.forEach.call(document.querySelectorAll('[data-cmp]'), function(box){
+    var clip   = box.querySelector('.cmp-clip');
+    var handle = box.querySelector('.cmp-handle');
+    var labelL = box.querySelector('.cmp-label.l');
+    var labelR = box.querySelector('.cmp-label.r');
+    if(!clip || !handle) return;
+
+    var pos = 50, dragging = false;
+    var nameL = labelL ? labelL.textContent.trim() : 'before';
+    var nameR = labelR ? labelR.textContent.trim() : 'after';
+
+    function apply(){
+      box.style.setProperty('--pos', pos + '%');
+      var v = Math.round(pos);
+      handle.setAttribute('aria-valuenow', v);
+      handle.setAttribute('aria-valuetext', v + ' percent ' + nameL + ', ' + (100 - v) + ' percent ' + nameR);
+    }
+    function setFromX(clientX){
+      var r = box.getBoundingClientRect();
+      if(!r.width) return;
+      var x = Math.min(Math.max(clientX - r.left, 0), r.width);
+      pos = (x / r.width) * 100;
+      apply();
+    }
+    function nudge(d){
+      pos = Math.min(100, Math.max(0, pos + d));
+      apply();
+    }
+
+    /* mouse / caneta */
+    box.addEventListener('mousedown', function(e){
+      dragging = true; setFromX(e.clientX); e.preventDefault();
+    });
+    document.addEventListener('mousemove', function(e){ if(dragging) setFromX(e.clientX); });
+    document.addEventListener('mouseup', function(){ dragging = false; });
+
+    /* touch: nao chama preventDefault, entao o scroll vertical continua livre
+       (touch-action:pan-y no CSS ja impede o pan horizontal roubar o gesto) */
+    box.addEventListener('touchstart', function(e){
+      if(e.touches.length !== 1) return;
+      dragging = true; setFromX(e.touches[0].clientX);
+    }, {passive:true});
+    box.addEventListener('touchmove', function(e){
+      if(dragging && e.touches.length === 1) setFromX(e.touches[0].clientX);
+    }, {passive:true});
+    box.addEventListener('touchend', function(){ dragging = false; }, {passive:true});
+    box.addEventListener('touchcancel', function(){ dragging = false; }, {passive:true});
+
+    /* teclado */
+    handle.addEventListener('keydown', function(e){
+      var k = e.key, step = e.shiftKey ? 10 : 2, done = true;
+      if(k === 'ArrowLeft' || k === 'Left') nudge(-step);
+      else if(k === 'ArrowRight' || k === 'Right') nudge(step);
+      else if(k === 'Home'){ pos = 0; apply(); }
+      else if(k === 'End'){ pos = 100; apply(); }
+      else if(k === 'PageDown') nudge(-10);
+      else if(k === 'PageUp') nudge(10);
+      else done = false;
+      if(done) e.preventDefault();
+    });
+    handle.addEventListener('mousedown', function(e){ e.stopPropagation(); dragging = true; setFromX(e.clientX); e.preventDefault(); });
+
+    apply();
+
+    /* promocao data-src -> src (so com a chave ligada) */
+    if(!COMPARE_PHOTOS_READY) return;
+    var imgs = box.querySelectorAll('.cmp-slot img[data-src]');
+    var okCount = 0, total = imgs.length;
+    Array.prototype.forEach.call(imgs, function(img){
+      var url = img.getAttribute('data-src');
+      if(!url) return;
+      img.addEventListener('load', function(){
+        img.parentNode.classList.add('has-img');
+        if(++okCount === total) box.classList.add('has-both');
+      });
+      img.addEventListener('error', function(){ /* volta ao placeholder, sem quebrar */ });
+      img.setAttribute('loading','lazy');
+      img.setAttribute('decoding','async');
+      img.src = url;
+    });
+  });
 
   /* ---------- menu mobile ---------- */
   var burger = document.getElementById('burger'), nav = document.getElementById('nav');
