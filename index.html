@@ -319,10 +319,13 @@ section{position:relative}
   background:radial-gradient(ellipse 70% 60% at 50% 46%,rgba(255,206,123,.14),rgba(151,27,47,.05) 52%,transparent 72%);
   /* FADE das bordas do frame: dissolve esq/dir + base (topo levemente) no fundo noturno.
      Duas rampas cruzadas (horizontal x vertical) combinadas por intersect -> canto some,
-     feather generoso -> zero linha reta de canvas visivel. */
-  -webkit-mask-image:linear-gradient(90deg,transparent 0,#000 22%,#000 78%,transparent 100%),linear-gradient(180deg,transparent 0,#000 9%,#000 54%,transparent 100%);
+     feather generoso -> zero linha reta de canvas visivel.
+     v8: a rampa vertical comeca em 74% (era 54%). A cena passou a ter PESSOAS de pe no chao
+     e o corte antigo dissolvia metade delas. O disco de neve ja tem fade radial proprio +
+     FogExp2 na cor do hero, entao a base continua sem aresta reta. */
+  -webkit-mask-image:linear-gradient(90deg,transparent 0,#000 20%,#000 80%,transparent 100%),linear-gradient(180deg,transparent 0,#000 8%,#000 74%,transparent 100%);
   -webkit-mask-composite:source-in;
-  mask-image:linear-gradient(90deg,transparent 0,#000 22%,#000 78%,transparent 100%),linear-gradient(180deg,transparent 0,#000 9%,#000 54%,transparent 100%);
+  mask-image:linear-gradient(90deg,transparent 0,#000 20%,#000 80%,transparent 100%),linear-gradient(180deg,transparent 0,#000 8%,#000 74%,transparent 100%);
   mask-composite:intersect}
 .hero-tree canvas{display:block;position:absolute;inset:0;width:100%!important;height:100%!important;z-index:1;
   cursor:grab;touch-action:pan-y}
@@ -918,10 +921,10 @@ section{position:relative}
       <div class="hero-visual sr-hidden">
         <span class="hero-glow" aria-hidden="true"></span>
         <div class="hero-frame">
-          <div class="hero-tree" id="heroTree" role="img" aria-label="Interactive 3D scene: a house and Christmas trees decorated with lights. Drag to rotate.">
-            <div class="ph night hero-tree-fallback" role="img" aria-label="A house and Christmas trees decorated with warm twinkling lights">
+          <div class="hero-tree" id="heroTree" role="img" aria-label="Interactive 3D scene: a real house at night covered in Christmas lights, two installers putting the light string up from a ladder, and lit trees glowing behind the house. Drag to rotate.">
+            <div class="ph night hero-tree-fallback" role="img" aria-label="A real house at night covered in warm Christmas lights, with installers on a ladder and lit trees glowing behind it">
               <span class="ph-tag">Holiday scene</span>
-              <span class="ph-alt">Interactive 3D house &amp; Christmas trees with twinkling lights</span>
+              <span class="ph-alt">Interactive 3D house with our crew installing the lights</span>
               <span class="ph-dim">Drag to rotate</span>
             </div>
           </div>
@@ -1633,7 +1636,12 @@ section{position:relative}
   <a href="#quote" class="btn gold">Get Your Free Quote</a>
 </div>
 
-<!-- ============ ARVORE DE NATAL 3D INTERATIVA (Three.js r160, ES module) ============ -->
+<!-- ============ CENA 3D DO HERO v8: CASA REAL + INSTALADORES + LUZES AO FUNDO ============
+     Three.js r160 (ES module via importmap). Casa procedural com texturas PBR reais
+     (Poly Haven, CC0, em assets/hero3d/), 2 instaladores em loop, cordoes com catenaria,
+     coniferas + bokeh iluminados ATRAS da casa (grupo que nao gira) e neve caindo.
+     Lampadas: InstancedMesh + Points = 2 draw calls para centenas de bulbos.
+     ================================================================================= -->
 <script type="module">
 (async function(){
   var mount = document.getElementById('heroTree');
@@ -1654,262 +1662,907 @@ section{position:relative}
   var isMobile = window.matchMedia('(max-width:960px)').matches || window.innerWidth < 700;
   var clamp = function(v,a,b){ return v<a?a:(v>b?b:v); };
   var rand  = function(a,b){ return a + Math.random()*(b-a); };
+  var TAU   = Math.PI*2;
+  var V3    = function(x,y,z){ return new THREE.Vector3(x,y,z); };
 
   var W = mount.clientWidth || 360, H = mount.clientHeight || 450;
 
   var renderer = new THREE.WebGLRenderer({ alpha:true, antialias:!isMobile, powerPreference:'high-performance' });
   renderer.setClearColor(0x000000, 0);
-  renderer.setPixelRatio(Math.min(window.devicePixelRatio||1, isMobile?1.5:2));
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio||1, isMobile?1.35:1.75));
   renderer.setSize(W, H);
   if('outputColorSpace' in renderer) renderer.outputColorSpace = THREE.SRGBColorSpace;
+  renderer.toneMapping = THREE.ACESFilmicToneMapping;
+  renderer.toneMappingExposure = 1.02;
   var canvas = renderer.domElement;
+  var ARIA = 'Interactive 3D scene: a real house at night covered in Christmas lights, two installers putting the light string up from a ladder, and lit trees glowing behind the house. Drag to rotate.';
   canvas.setAttribute('role','img');
-  canvas.setAttribute('aria-label','Interactive 3D scene: a house and Christmas trees decorated with lights. Drag to rotate.');
+  canvas.setAttribute('aria-label', ARIA);
   mount.appendChild(canvas);
 
   var scene  = new THREE.Scene();
-  scene.fog  = new THREE.FogExp2(0x0E1A0B, 0.062);          /* neblina = tom do hero noturno; densidade +alta escurece as pontas p/ casar com o fundo (sem bloco claro) */
-  var camera = new THREE.PerspectiveCamera(44, W/H, 0.1, 100);
-  camera.position.set(0, 1.0, 10.4);   /* aproximada (era 11.6): casa+arvores maiores, cena solta sem moldura */
-  camera.lookAt(0, 0.2, 0);
+  scene.fog  = new THREE.FogExp2(0x0E1A0B, 0.036);   /* neblina = tom do hero noturno (#0E1A0B) */
+  var camera = new THREE.PerspectiveCamera(44, W/H, 0.1, 120);
+  /* mobile: quadro mais baixo e fechado -> a casa e os instaladores sobem no frame
+     e nao ficam atras da barra fixa de CTA */
+  if(isMobile){ camera.position.set(0, 1.48, 8.45); camera.lookAt(0, -0.16, 0); }
+  else        { camera.position.set(0, 1.30, 9.15); camera.lookAt(0, 0.20, 0); }
 
-  var root = new THREE.Group();          /* a cena inteira gira aqui (casa + arvores) */
+  var root = new THREE.Group();      /* gira no drag: casa + pessoas + escada + quintal */
   scene.add(root);
+  var backdrop = new THREE.Group();  /* NAO gira: garante "luzes atras da casa" em qualquer angulo */
+  scene.add(backdrop);
 
-  var GROUND = -2.0;
+  var GROUND = -1.9;
+  var RY = function(x,ly,z){ return V3(x, GROUND+ly, z); };   /* local da casa -> espaco de root */
 
-  /* ================= ILUMINACAO (cena noturna, glow quente) ================= */
-  scene.add(new THREE.HemisphereLight(0xFFE0B0, 0x0B160A, 0.55));   /* ceu quente / chao escuro */
-  scene.add(new THREE.AmbientLight(0x2A3A22, 0.5));                 /* preenchimento verde baixo  */
-  var key = new THREE.DirectionalLight(0xFFDCA6, 1.35); key.position.set(-4, 6, 5); scene.add(key);   /* key quente */
-  var rim = new THREE.DirectionalLight(0x9FB8D6, 0.7);  rim.position.set(4, 3.5, -5); scene.add(rim);  /* rim frio (luar) separa do fundo */
+  /* ================= ENVIRONMENT (ceu noturno procedural, 0 KB) ============= */
+  try{
+    var envCv = document.createElement('canvas'); envCv.width = 128; envCv.height = 64;
+    var envG = envCv.getContext('2d');
+    var envGrd = envG.createLinearGradient(0,0,0,64);
+    envGrd.addColorStop(0,   '#0a1220');
+    envGrd.addColorStop(0.45,'#13201a');
+    envGrd.addColorStop(0.64,'#2e2a1b');
+    envGrd.addColorStop(0.80,'#553f24');
+    envGrd.addColorStop(1,   '#0b1409');
+    envG.fillStyle = envGrd; envG.fillRect(0,0,128,64);
+    var envTex = new THREE.CanvasTexture(envCv);
+    envTex.mapping = THREE.EquirectangularReflectionMapping;
+    envTex.colorSpace = THREE.SRGBColorSpace;
+    if(!isMobile){
+      var pmrem = new THREE.PMREMGenerator(renderer);
+      scene.environment = pmrem.fromEquirectangular(envTex).texture;
+      pmrem.dispose();
+    }
+    envTex.dispose();
+  }catch(e){}
 
-  /* ================= CHAO DE NEVE (disco radial que some nas bordas) ========= */
-  (function(){
-    var cv = document.createElement('canvas'); cv.width = cv.height = 256;
-    var g = cv.getContext('2d');
-    var grd = g.createRadialGradient(128,128,8, 128,128,128);
-    grd.addColorStop(0,    'rgba(233,240,246,0.9)');
-    grd.addColorStop(0.34, 'rgba(200,214,224,0.42)');
-    grd.addColorStop(0.62, 'rgba(190,204,214,0.08)');
-    grd.addColorStop(1,    'rgba(190,204,214,0)');   /* some bem antes da borda -> sem aresta reta */
-    g.fillStyle = grd; g.fillRect(0,0,256,256);
-    var tex = new THREE.CanvasTexture(cv);
-    var groundMat = new THREE.MeshStandardMaterial({ map:tex, transparent:true, roughness:0.55, metalness:0.12, depthWrite:false });
-    var ground = new THREE.Mesh(new THREE.CircleGeometry(5.6, 48), groundMat);
-    ground.rotation.x = -Math.PI/2; ground.position.y = GROUND + 0.01;
-    root.add(ground);
-  })();
+  /* ================= ILUMINACAO (noite + contraluz quente) ================= */
+  scene.add(new THREE.HemisphereLight(0xB6CCEC, 0x0B160A, isMobile ? 0.50 : 0.30));
+  scene.add(new THREE.AmbientLight(0x2B3823, isMobile ? 0.72 : 0.40));
+  var moon = new THREE.DirectionalLight(0xAFC6E8, isMobile ? 0.92 : 0.78); moon.position.set(-5.5, 7, 3.0); scene.add(moon);
+  var warmKey = new THREE.DirectionalLight(0xFFC98A, 0.58); warmKey.position.set(3.4, 2.2, 5.5); if(!isMobile) scene.add(warmKey);
+  var backRim = new THREE.DirectionalLight(0xFFB876, 0.92); backRim.position.set(-1.5, 3.4, -7.5); scene.add(backRim);
+  /* uma unica point real: spill quente da casa sobre os instaladores */
+  var porchLight = new THREE.PointLight(0xFFB055, isMobile ? 3.4 : 3.2, 6.4, 2.0);
+  porchLight.position.set(0.85, GROUND + 1.55, 1.95); root.add(porchLight);
 
-  /* ================= HALO / BLOOM-LIKE (sprite aditivo compartilhado) ======== */
+  /* ================= TEXTURAS PBR (Poly Haven, CC0) ======================== */
+  var TEXDIR = 'assets/hero3d/';
+  var MAT = {
+    siding : new THREE.MeshStandardMaterial({ color:0xD9CDB6, roughness:0.86, metalness:0.0 }),
+    trim   : new THREE.MeshStandardMaterial({ color:0xEFE7DA, roughness:0.60, metalness:0.0 }),
+    roof   : new THREE.MeshStandardMaterial({ color:0x6E6A5E, roughness:0.92, metalness:0.02 }),
+    brick  : new THREE.MeshStandardMaterial({ color:0x8E5240, roughness:0.94, metalness:0.0 }),
+    snow   : new THREE.MeshStandardMaterial({ color:0xDCE6EE, roughness:0.74, metalness:0.0 }),
+    ground : new THREE.MeshStandardMaterial({ color:0xAEBECD, roughness:0.82, metalness:0.0, transparent:true, depthWrite:false }),
+    wood   : new THREE.MeshStandardMaterial({ color:0x5B3A26, roughness:0.72, metalness:0.03 }),
+    metal  : new THREE.MeshStandardMaterial({ color:0xA9B0B8, roughness:0.38, metalness:0.72 }),
+    dark   : new THREE.MeshStandardMaterial({ color:0x1A2418, roughness:0.95, metalness:0.0 }),
+    glass  : new THREE.MeshStandardMaterial({ color:0xFFD8A4, emissive:0xFF9A45, emissiveIntensity:0.72, roughness:0.24, metalness:0.0, toneMapped:false, fog:false })
+  };
+
+  var TL = new THREE.TextureLoader();
+  function loadTex(file, srgb){
+    return new Promise(function(res){
+      TL.load(TEXDIR+file, function(t){
+        t.wrapS = t.wrapT = THREE.RepeatWrapping;
+        try{ t.anisotropy = Math.min(4, renderer.capabilities.getMaxAnisotropy()); }catch(e){}
+        if(srgb && 'colorSpace' in t) t.colorSpace = THREE.SRGBColorSpace;
+        res(t);
+      }, undefined, function(){ res(null); });
+    });
+  }
+  /* progressivo: a cena renderiza ja com cores base; os mapas entram quando chegam */
+  var texReady = false;
+  Promise.all([
+    loadTex('siding_d.webp',1), loadTex('siding_n.webp',0), loadTex('siding_arm.webp',0),
+    loadTex('roof_d.webp',1),   loadTex('roof_n.webp',0),   loadTex('roof_arm.webp',0),
+    loadTex('brick_d.webp',1),  loadTex('brick_n.webp',0),
+    loadTex('snow_d.webp',1),   loadTex('snow_n.webp',0)
+  ]).then(function(t){
+    function apply(m, d, n, arm, nScale, tint){
+      if(d){ m.map = d; m.color.setHex(tint || 0xFFFFFF); }
+      if(n && !isMobile){ m.normalMap = n; m.normalScale = new THREE.Vector2(nScale||1, nScale||1); }
+      if(arm && !isMobile){ m.aoMap = arm; m.roughnessMap = arm; m.metalnessMap = arm; m.metalness = 0.0; }
+      m.needsUpdate = true;
+    }
+    apply(MAT.siding, t[0], t[1], t[2], 1.25, 0xE6DAC6);
+    apply(MAT.roof,   t[3], t[4], t[5], 1.45, 0x6C6559);
+    apply(MAT.brick,  t[6], t[7], null, 1.00, 0xC59180);
+    apply(MAT.snow,   t[8], t[9], null, 1.05, 0xE2E9EE);
+    /* chao: mesma neve, mas com repeat proprio (uv 0..1) p/ o alphaMap radial casar */
+    if(t[8]){
+      var gd = t[8].clone(); gd.repeat.set(7.0, 7.0); gd.needsUpdate = true;
+      MAT.ground.map = gd; MAT.ground.color.setHex(0xC3D2DF);
+    }
+    if(t[9] && !isMobile){
+      var gn = t[9].clone(); gn.repeat.set(7.0, 7.0); gn.needsUpdate = true;
+      MAT.ground.normalMap = gn; MAT.ground.normalScale = new THREE.Vector2(0.9, 0.9);
+    }
+    MAT.ground.needsUpdate = true;
+    texReady = true;
+    if(!loopMode) needRender();
+  });
+
+  /* UV em escala de mundo p/ BoxGeometry (s = repeticoes por unidade) */
+  function uvBox(geo, w, h, d, s, swap){
+    var uv = geo.attributes.uv;
+    var su = [d,d,w,w,w,w], sv = [h,h,d,d,h,h];   /* px,nx,py,ny,pz,nz */
+    for(var f=0; f<6; f++){
+      for(var i=0;i<4;i++){
+        var idx = f*4+i, u = uv.getX(idx), v = uv.getY(idx);
+        var nu = u*su[f]*s, nv = v*sv[f]*s;
+        if(swap){ var tmp = nu; nu = nv; nv = tmp; }
+        uv.setXY(idx, nu, nv);
+      }
+    }
+    uv.needsUpdate = true;
+    if(!geo.attributes.uv1) geo.setAttribute('uv1', uv);   /* aoMap usa uv1 */
+    return geo;
+  }
+  function uvShape(geo, s, swap){
+    var uv = geo.attributes.uv, pos = geo.attributes.position;
+    for(var i=0;i<uv.count;i++){
+      var nu = pos.getX(i)*s, nv = pos.getY(i)*s;
+      if(swap){ var tmp = nu; nu = nv; nv = tmp; }
+      uv.setXY(i, nu, nv);
+    }
+    uv.needsUpdate = true;
+    if(!geo.attributes.uv1) geo.setAttribute('uv1', uv);
+    return geo;
+  }
+  function box(w,h,d, mat, s, swap){
+    var g = new THREE.BoxGeometry(w,h,d);
+    uvBox(g, w,h,d, s||0.9, swap);
+    return new THREE.Mesh(g, mat);
+  }
+
+  /* ================= HALO / BOKEH (textura compartilhada) ================== */
   var haloTex = (function(){
     var cv = document.createElement('canvas'); cv.width = cv.height = 64;
     var g = cv.getContext('2d');
     var grd = g.createRadialGradient(32,32,0, 32,32,32);
     grd.addColorStop(0,   'rgba(255,255,255,1)');
-    grd.addColorStop(0.25,'rgba(255,255,255,0.55)');
-    grd.addColorStop(0.6, 'rgba(255,255,255,0.14)');
+    grd.addColorStop(0.22,'rgba(255,255,255,0.60)');
+    grd.addColorStop(0.55,'rgba(255,255,255,0.16)');
     grd.addColorStop(1,   'rgba(255,255,255,0)');
     g.fillStyle = grd; g.fillRect(0,0,64,64);
-    return new THREE.CanvasTexture(cv);
+    var t = new THREE.CanvasTexture(cv);
+    if('colorSpace' in t) t.colorSpace = THREE.SRGBColorSpace;
+    return t;
   })();
 
-  var bulbGeo = new THREE.SphereGeometry(0.05, 8, 6);
-  var bulbs = [];   /* {mat, sprMat, base(scale), phase, speed, lo, hi} */
-
-  /* cria um bulbo emissivo + halo aditivo em worldPos (coords de root) */
-  function addBulb(x, y, z, colorHex, sizeMul){
-    sizeMul = sizeMul || 1;
-    var col = new THREE.Color(colorHex);
-    var mat = new THREE.MeshStandardMaterial({ color: col.clone().multiplyScalar(0.28), emissive: col, emissiveIntensity: 1, roughness:0.35, metalness:0, toneMapped:false });
-    var b = new THREE.Mesh(bulbGeo, mat);
-    b.position.set(x,y,z); b.scale.setScalar(sizeMul);
-    root.add(b);
-    var sprMat = new THREE.SpriteMaterial({ map:haloTex, color:col, transparent:true, opacity:0.75, blending:THREE.AdditiveBlending, depthWrite:false });
-    var spr = new THREE.Sprite(sprMat);
-    var s0 = 0.34*sizeMul;
-    spr.scale.set(s0,s0,s0); spr.position.set(x,y,z);
-    root.add(spr);
-    bulbs.push({ mat:mat, sprMat:sprMat, spr:spr, s0:s0,
-      phase:Math.random()*Math.PI*2, speed:rand(1.3,3.6),
-      lo:rand(0.22,0.4), hi:rand(1.15,1.75) });
+  function addGlow(parent, x,y,z, size, hex, op, normal){
+    var m = new THREE.SpriteMaterial({ map:haloTex, color:new THREE.Color(hex), transparent:true,
+      opacity:op, blending: normal ? THREE.NormalBlending : THREE.AdditiveBlending,
+      depthWrite:false, fog:false, toneMapped:false });
+    var s = new THREE.Sprite(m);
+    s.scale.set(size,size,size); s.position.set(x,y,z);
+    parent.add(s); return s;
   }
 
-  var PAL = [0xFFCE7B, 0xFFF0CF, 0xD23B4E, 0x8FBE7E, 0xFF9A4B, 0xFFD24A];   /* gold, branco quente, vermelho, verde, laranja, dourado */
+  /* ================= LAMPADAS: 2 draw calls p/ centenas de bulbos ========== */
+  /* mode: 0 = warm steady (instalacao profissional), 1 = twinkle, 2 = chase, 3 = apagada */
+  function makeBulbs(parent, haloSize, gain){
+    var P = [], C = [], M = [], api = { gain: (gain==null?1:gain) };
+    api.add = function(x,y,z,hex,r,mode,speed,phase){
+      P.push(x,y,z); C.push(0,0,0);
+      var lo, hi;
+      if(mode===0){ lo=0.86; hi=1.0; }
+      else if(mode===3){ lo=0.04; hi=0.07; }
+      else { lo=0.16; hi=1.0; }
+      M.push({ c:new THREE.Color(hex), r:r||0.036, mode:(mode||0),
+               sp:speed||1.5, ph:(phase==null? Math.random()*TAU : phase), lo:lo, hi:hi });
+      return M.length-1;
+    };
+    api.build = function(){
+      var n = M.length; if(!n) return;
+      var geo = new THREE.SphereGeometry(1, 6, 4);
+      var mat = new THREE.MeshBasicMaterial({ toneMapped:false, fog:false });
+      var im  = new THREE.InstancedMesh(geo, mat, n);
+      var mx  = new THREE.Matrix4();
+      for(var i=0;i<n;i++){
+        mx.makeScale(M[i].r, M[i].r, M[i].r);
+        mx.setPosition(P[i*3], P[i*3+1], P[i*3+2]);
+        im.setMatrixAt(i, mx);
+        im.setColorAt(i, M[i].c);
+      }
+      im.instanceMatrix.needsUpdate = true;
+      im.frustumCulled = false;
+      parent.add(im); api.mesh = im;
 
-  /* distribui bulbos ao longo de um segmento p0->p1 */
-  function bulbLine(p0, p1, n, sizeMul){
-    for(var i=0;i<n;i++){
-      var f = n>1 ? i/(n-1) : 0.5;
-      addBulb(p0[0]+(p1[0]-p0[0])*f, p0[1]+(p1[1]-p0[1])*f, p0[2]+(p1[2]-p0[2])*f, PAL[(Math.random()*PAL.length)|0], sizeMul);
+      var pg = new THREE.BufferGeometry();
+      pg.setAttribute('position', new THREE.Float32BufferAttribute(P, 3));
+      pg.setAttribute('color',    new THREE.Float32BufferAttribute(C, 3));
+      var pm = new THREE.PointsMaterial({ size:haloSize||0.34, map:haloTex, vertexColors:true,
+        transparent:true, blending:THREE.AdditiveBlending, depthWrite:false,
+        sizeAttenuation:true, fog:false, toneMapped:false });
+      var pts = new THREE.Points(pg, pm); pts.frustumCulled = false;
+      parent.add(pts); api.points = pts;
+    };
+    var tmpC = new THREE.Color();
+    api.update = function(t, still){
+      if(!api.mesh) return;
+      var cA = api.points.geometry.attributes.color, gK = api.gain;
+      for(var i=0;i<M.length;i++){
+        var b = M[i], k;
+        if(b.mode===3) k = still ? 0 : (0.5 + 0.5*Math.sin(t*0.4 + b.ph))*0.3;
+        else if(still) k = 0.9;
+        else if(b.mode===0) k = 0.80 + 0.20*Math.sin(t*0.7 + b.ph);
+        else k = 0.5 + 0.5*Math.sin(t*b.sp + b.ph);
+        var e = (b.lo + (b.hi - b.lo)*k) * gK;
+        tmpC.copy(b.c).multiplyScalar(e);
+        api.mesh.setColorAt(i, tmpC);
+        cA.setXYZ(i, tmpC.r*0.92, tmpC.g*0.92, tmpC.b*0.92);
+      }
+      if(api.mesh.instanceColor) api.mesh.instanceColor.needsUpdate = true;
+      cA.needsUpdate = true;
+    };
+    api.count = function(){ return M.length; };
+    return api;
+  }
+
+  var bulbs    = makeBulbs(root, isMobile ? 0.30 : 0.34, 1.0);
+  var farBulbs = makeBulbs(backdrop, isMobile ? 0.52 : 0.60, 0.80);
+
+  var WARM    = [0xFFCE7B, 0xFFE7B8, 0xFFD79A];
+  var FESTIVE = [0xFFCE7B, 0xE4413F, 0x62B24B, 0xFFF0CF, 0xE8823A];
+  var pick = function(a){ return a[(Math.random()*a.length)|0]; };
+
+  /* fio + lampadas com CATENARIA (a barriga do cordao e o que faz parecer real) */
+  var wireMat = new THREE.MeshStandardMaterial({ color:0x232A20, roughness:0.95, metalness:0.0 });
+  function lightRun(sys, parent, pts, opt){
+    opt = opt || {};
+    var spacing = opt.spacing || 0.15;
+    var sag     = (opt.sag == null ? 0.055 : opt.sag);
+    var mode    = (opt.mode == null ? 0 : opt.mode);
+    var pal     = opt.pal || WARM;
+    var r       = opt.r || 0.036;
+    var speed   = opt.speed || 1.6;
+    var curvePts = [], idx = 0;
+    for(var s=0; s<pts.length-1; s++){
+      var a = pts[s], b = pts[s+1];
+      var len = a.distanceTo(b);
+      var n = Math.max(2, Math.round(len/spacing));
+      for(var i=0;i<=n;i++){
+        if(s>0 && i===0) continue;
+        var f = i/n;
+        var p = a.clone().lerp(b, f);
+        p.y -= sag * 4 * f * (1-f) * (len/1.4);
+        curvePts.push(p);
+        var ph = (mode===2) ? -idx*0.42 : Math.random()*TAU;
+        sys.add(p.x, p.y, p.z, opt.color || pick(pal), r, mode, speed, ph);
+        idx++;
+      }
     }
+    if(opt.wire !== false && curvePts.length > 2){
+      try{
+        var curve = new THREE.CatmullRomCurve3(curvePts);
+        parent.add(new THREE.Mesh(new THREE.TubeGeometry(curve, Math.min(56, curvePts.length*2), 0.0055, 3, false), wireMat));
+      }catch(e){}
+    }
+    return curvePts;
   }
 
-  /* ================= ARVORE (cones lisos, sem risco escuro) ================= */
-  /* Fix do "risco escuro": radialSegments alto (36) + SEM flatShading + normais
-     recomputadas apos jitter -> sombreamento continuo, sem aresta/costura dura. */
-  function makeTree(cx, cz, scale, bulbCount){
+  /* ================= CHAO DE NEVE (disco com fade radial -> sem aresta) ==== */
+  var groundFadeTex = (function(){
+    var cv = document.createElement('canvas'); cv.width = cv.height = 256;
+    var g = cv.getContext('2d');
+    var grd = g.createRadialGradient(128,128,10, 128,128,128);
+    grd.addColorStop(0,    'rgba(255,255,255,1)');
+    grd.addColorStop(0.38, 'rgba(255,255,255,0.74)');
+    grd.addColorStop(0.68, 'rgba(255,255,255,0.15)');
+    grd.addColorStop(1,    'rgba(255,255,255,0)');
+    g.fillStyle = grd; g.fillRect(0,0,256,256);
+    return new THREE.CanvasTexture(cv);
+  })();
+  MAT.ground.alphaMap = groundFadeTex;
+  (function(){
+    var m = new THREE.Mesh(new THREE.CircleGeometry(6.4, 56), MAT.ground);
+    m.rotation.x = -Math.PI/2;
+    m.position.y = GROUND + 0.005;
+    m.userData.noCast = true;
+    root.add(m);
+  })();
+  /* neblina rasteira: a cena "nasce" da neve, sem corte reto na base */
+  for(var mi=0; mi<2; mi++){
+    addGlow(root, rand(-1.2,1.2), GROUND + 0.16 + mi*0.07, rand(1.0,2.6), rand(3.6,4.8), 0xBFD0E2, 0.040, true);
+  }
+
+  /* ================= CASA REALISTA ========================================= */
+  var HOUSE = {};
+  (function buildHouse(){
+    var g = new THREE.Group();
+    g.position.set(0, GROUND, 0);
+    root.add(g);
+    HOUSE.group = g;
+
+    var MW = 3.2, MH = 2.05, MD = 2.0, MCZ = -0.30;
+    var MX0 = -MW/2, MX1 = MW/2;
+    var MZF = MCZ + MD/2, MZB = MCZ - MD/2;
+    var OV = 0.18, RISE = 0.85;
+
+    /* fundacao em tijolo */
+    var fnd = box(MW+0.10, 0.22, MD+0.10, MAT.brick, 1.5);
+    fnd.position.set(0, 0.11, MCZ); g.add(fnd);
+
+    /* corpo principal (siding horizontal) */
+    var MY0 = 0.22, MY1 = 0.22 + MH;
+    var body = box(MW, MH, MD, MAT.siding, 1.35, true);
+    body.position.set(0, MY0 + MH/2, MCZ); g.add(body);
+
+    /* --- telhado de duas aguas: cumeeira ao longo do Z LOCAL --------------- */
+    function gableRoof(hw, rise, hl, wallHalfW, withGableEnds){
+      var grp = new THREE.Group();
+      var L = Math.hypot(hw, rise), ang = Math.atan2(rise, hw), th = 0.075;
+      [-1, 1].forEach(function(sgn){
+        var slab = box(L, th, hl*2, MAT.roof, 1.9);
+        slab.rotation.z = -sgn*ang;
+        slab.position.set(sgn*hw/2, rise/2, 0);
+        grp.add(slab);
+        [[0.52, 0.044, 1.00],[0.34, 0.030, 0.72]].forEach(function(q){
+          var sl = L*q[0], midF = (sl/2)/L;
+          var sn = box(sl, q[1], hl*2*q[2], MAT.snow, 2.4);
+          sn.rotation.z = -sgn*ang;
+          sn.position.set(sgn*hw*midF, rise*(1-midF) + 0.052, (1-q[2])*hl*0.55);
+          grp.add(sn);
+        });
+      });
+      var ridge = box(0.13, 0.085, hl*2, MAT.roof, 3.0);
+      ridge.position.set(0, rise + 0.005, 0); grp.add(ridge);
+      var rs = box(0.155, 0.042, hl*2 - 0.05, MAT.snow, 2.8);
+      rs.position.set(0, rise + 0.068, 0); grp.add(rs);
+      [-1,1].forEach(function(sgn){
+        var gut = new THREE.Mesh(new THREE.CylinderGeometry(0.040, 0.040, hl*2, 8), MAT.dark);
+        gut.rotation.x = Math.PI/2;
+        gut.position.set(sgn*hw, 0.015, 0); grp.add(gut);
+      });
+      if(withGableEnds){
+        var edgeY = rise*(1 - wallHalfW/hw);
+        [-1,1].forEach(function(sgn){
+          var sh = new THREE.Shape();
+          sh.moveTo(-wallHalfW, -0.03); sh.lineTo(wallHalfW, -0.03);
+          sh.lineTo(wallHalfW, edgeY); sh.lineTo(0, rise - 0.02); sh.lineTo(-wallHalfW, edgeY);
+          sh.closePath();
+          var sg = new THREE.ShapeGeometry(sh); uvShape(sg, 1.35, true);
+          var m = new THREE.Mesh(sg, MAT.siding);
+          m.position.set(0, 0, sgn*(hl - OV));
+          if(sgn < 0) m.rotation.y = Math.PI;
+          grp.add(m);
+        });
+      }
+      return grp;
+    }
+
+    var mHw = MD/2 + OV, mHl = MW/2 + OV;
+    var roofA = gableRoof(mHw, RISE, mHl, MD/2, true);
+    roofA.rotation.y = Math.PI/2;               /* cumeeira passa a correr em X */
+    roofA.position.set(0, MY1, MCZ);
+    g.add(roofA);
+    var EAVE_Y = MY1, RIDGE_Y = MY1 + RISE;
+    var EAVE_ZF = MCZ + mHw, EAVE_ZB = MCZ - mHw;
+    var EAVE_X0 = -mHl, EAVE_X1 = mHl;
+
+    /* --- ala frontal com frontao virado p/ a rua --------------------------- */
+    var WW = 1.45, WH = 1.46, WD = 1.05, WCX = -0.80, WCZ = 1.02;
+    var wFnd = box(WW+0.08, 0.22, WD+0.08, MAT.brick, 1.5);
+    wFnd.position.set(WCX, 0.11, WCZ); g.add(wFnd);
+    var wing = box(WW, WH, WD, MAT.siding, 1.35, true);
+    wing.position.set(WCX, 0.22 + WH/2, WCZ); g.add(wing);
+    var WY1 = 0.22 + WH, wHw = WW/2 + 0.14, wRise = 0.54, wHl = WD/2 + 0.14;
+    var roofB = gableRoof(wHw, wRise, wHl, WW/2, false);
+    roofB.position.set(WCX, WY1, WCZ);
+    g.add(roofB);
+    (function(){
+      var edgeY = wRise*(1 - (WW/2)/wHw);
+      var sh = new THREE.Shape();
+      sh.moveTo(-WW/2, -0.02); sh.lineTo(WW/2, -0.02);
+      sh.lineTo(WW/2, edgeY); sh.lineTo(0, wRise - 0.015); sh.lineTo(-WW/2, edgeY);
+      sh.closePath();
+      var sg = new THREE.ShapeGeometry(sh); uvShape(sg, 1.35, true);
+      var m = new THREE.Mesh(sg, MAT.siding);
+      m.position.set(WCX, WY1, WCZ + WD/2 + 0.002); g.add(m);
+    })();
+    var WZF = WCZ + wHl;
+
+    /* --- alpendre (porch) ---------------------------------------------------- */
+    var PX0 = -0.05, PX1 = 1.22, PZF = 1.34, PY = 1.44;
+    var deck = box(PX1-PX0+0.16, 0.14, PZF-MZF+0.14, MAT.wood, 2.4);
+    deck.position.set((PX0+PX1)/2, 0.07, (MZF+PZF)/2); g.add(deck);
+    var pRoof = box(PX1-PX0+0.22, 0.10, PZF-MZF+0.20, MAT.roof, 2.6);
+    pRoof.position.set((PX0+PX1)/2, PY, (MZF+PZF)/2 + 0.02); g.add(pRoof);
+    var pSnow = box(PX1-PX0+0.18, 0.05, PZF-MZF+0.16, MAT.snow, 2.2);
+    pSnow.position.set((PX0+PX1)/2, PY+0.076, (MZF+PZF)/2 + 0.02); g.add(pSnow);
+    [PX0+0.06, PX1-0.06].forEach(function(px){
+      var post = box(0.095, PY-0.14, 0.095, MAT.trim, 3.0);
+      post.position.set(px, 0.14 + (PY-0.14)/2, PZF-0.09); g.add(post);
+    });
+    [0,1].forEach(function(i){
+      var st = box(0.74, 0.06, 0.18, MAT.snow, 3.0);
+      st.position.set(0.58, 0.11 - i*0.055, PZF + 0.11 + i*0.18); g.add(st);
+    });
+
+    /* --- janelas / porta ----------------------------------------------------- */
+    var ZF = MZF + 0.028;
+    function window3(x, y, z, w, h, dir, mull){
+      var thin = 0.05;
+      var gr = new THREE.Group();
+      var frame = box(w+0.09, h+0.09, thin, MAT.trim, 3.2);
+      frame.position.z = -0.008; gr.add(frame);
+      var gm = MAT.glass.clone(); gm.emissiveIntensity = rand(0.46, 0.86);
+      gr.add(new THREE.Mesh(new THREE.BoxGeometry(w, h, thin*0.7), gm));
+      if(mull !== false && !isMobile){
+        var mv = box(0.026, h, thin*1.3, MAT.trim, 4.0); mv.position.z = 0.012; gr.add(mv);
+        var mh = box(w, 0.026, thin*1.3, MAT.trim, 4.0); mh.position.z = 0.012; gr.add(mh);
+      }
+      var sill = box(w+0.15, 0.045, 0.10, MAT.snow, 3.0);
+      sill.position.set(0, -(h/2)-0.07, 0.03); gr.add(sill);
+      gr.position.set(x, y, z);
+      if(dir === 'b') gr.rotation.y = Math.PI;
+      if(dir === 'l') gr.rotation.y = -Math.PI/2;
+      if(dir === 'r') gr.rotation.y = Math.PI/2;
+      g.add(gr);
+      var off = (dir==='f') ? [0,0,0.16] : (dir==='b') ? [0,0,-0.16] : (dir==='l') ? [-0.16,0,0] : [0.16,0,0];
+      addGlow(g, x+off[0], y+off[1], z+off[2], Math.max(w,h)*1.55, 0xFFB55E, 0.34);
+      return gr;
+    }
+    window3( 0.42, 1.42, ZF, 0.50, 0.62, 'f');
+    window3( 1.16, 1.42, ZF, 0.50, 0.62, 'f');
+    window3( 1.10, 0.74, ZF, 0.42, 0.54, 'f');
+    window3(WCX, 0.86, WCZ + WD/2 + 0.030, 0.86, 0.70, 'f');
+    window3(WCX, 1.62, WCZ + WD/2 + 0.030, 0.30, 0.24, 'f', false);
+    window3(MX0 - 0.030, 0.82, MCZ + 0.42, 0.44, 0.56, 'l');
+    window3(MX1 + 0.030, 0.88, MCZ + 0.28, 0.44, 0.56, 'r');
+    if(!isMobile){
+      window3(MX0 - 0.030, 1.52, MCZ - 0.38, 0.44, 0.56, 'l');
+      window3(MX1 + 0.030, 1.52, MCZ - 0.42, 0.44, 0.56, 'r');
+      window3(-0.62, 1.48, MZB - 0.030, 0.46, 0.56, 'b');
+      window3( 0.70, 1.48, MZB - 0.030, 0.46, 0.56, 'b');
+    }
+
+    /* venezianas (shutters): detalhe que faz a fachada ler como casa americana real */
+    var shutMat = new THREE.MeshStandardMaterial({ color:0x24361E, roughness:0.78, metalness:0.0 });
+    function shutters(x, y, z, w, h){
+      [-1, 1].forEach(function(sgn){
+        var sh = box(w*0.34, h+0.06, 0.032, shutMat, 5.0);
+        sh.position.set(x + sgn*(w/2 + w*0.20 + 0.035), y, z - 0.004);
+        g.add(sh);
+        if(isMobile) return;
+        for(var i=0;i<3;i++){                                  /* ripas horizontais */
+          var sl = box(w*0.30, 0.012, 0.040, shutMat, 6.0);
+          sl.position.set(sh.position.x, y - (h/2) + (i+0.85)*((h+0.06)/4), z + 0.010);
+          g.add(sl);
+        }
+      });
+    }
+    shutters(0.42, 1.42, ZF, 0.50, 0.62);
+    shutters(1.16, 1.42, ZF, 0.50, 0.62);
+    shutters(WCX, 0.86, WCZ + WD/2 + 0.030, 0.86, 0.70);
+
+    /* caminho de pedra ate a rua + caixa de correio (escala e vida) */
+    (function(){
+      for(var i=0;i<(isMobile?3:5);i++){
+        var pv = box(0.60 - i*0.045, 0.035, 0.30, MAT.snow, 2.2);
+        pv.position.set(0.58 - i*0.02, 0.028, PZF + 0.52 + i*0.40);
+        g.add(pv);
+      }
+      var postM = new THREE.Mesh(new THREE.CylinderGeometry(0.030, 0.030, 0.62, 8), MAT.wood);
+      postM.position.set(1.92, 0.31, 2.34); g.add(postM);
+      var boxM = new THREE.Mesh(new THREE.CylinderGeometry(0.075, 0.075, 0.20, 10, 1, false, 0, Math.PI), MAT.metal);
+      boxM.rotation.z = Math.PI/2; boxM.position.set(1.92, 0.66, 2.34); g.add(boxM);
+      var mSnow = box(0.16, 0.03, 0.21, MAT.snow, 3.0);
+      mSnow.position.set(1.92, 0.755, 2.34); g.add(mSnow);
+    })();
+
+    /* porta + coroa de Natal iluminada */
+    var DX = 0.50, DH = 1.06, DW = 0.52;
+    (function(){
+      var jam = box(DW+0.10, DH+0.09, 0.05, MAT.trim, 3.2);
+      jam.position.set(DX, 0.14 + (DH+0.09)/2 - 0.045, ZF - 0.008); g.add(jam);
+      var door = box(DW, DH, 0.06, MAT.wood, 3.4);
+      door.position.set(DX, 0.14 + DH/2, ZF + 0.012); g.add(door);
+      var fanM = MAT.glass.clone(); fanM.emissiveIntensity = 0.85;
+      var fan = new THREE.Mesh(new THREE.BoxGeometry(DW*0.72, 0.13, 0.04), fanM);
+      fan.position.set(DX, 0.14 + DH - 0.11, ZF + 0.032); g.add(fan);
+      addGlow(g, DX, 0.14 + DH*0.55, ZF + 0.24, 0.85, 0xFFB55E, 0.30);
+      var wr = new THREE.Mesh(new THREE.TorusGeometry(0.155, 0.048, 6, 18),
+        new THREE.MeshStandardMaterial({ color:0x2C4A20, roughness:0.92 }));
+      wr.position.set(DX, 0.14 + DH*0.62, ZF + 0.058); g.add(wr);
+      var bow = new THREE.Mesh(new THREE.BoxGeometry(0.11, 0.075, 0.04),
+        new THREE.MeshStandardMaterial({ color:0x971B2F, roughness:0.6 }));
+      bow.position.set(DX, 0.14 + DH*0.62 - 0.16, ZF + 0.088); g.add(bow);
+      for(var i=0;i<10;i++){
+        var a = i/10*TAU;
+        bulbs.add(DX + Math.cos(a)*0.158, GROUND + 0.14 + DH*0.62 + Math.sin(a)*0.158, ZF + 0.095,
+          (i%3===0) ? 0xE4413F : 0xFFCE7B, 0.029, 1, rand(1.8,3.2));
+      }
+    })();
+
+    /* --- chamine de tijolo com neve ---------------------------------------- */
+    (function(){
+      var cx = 1.02, cz = MCZ - 0.62, cw = 0.36, top = MY1 + RISE + 0.42;
+      var ch = box(cw, top - 1.20, cw, MAT.brick, 2.0);
+      ch.position.set(cx, 1.20 + (top-1.20)/2, cz); g.add(ch);
+      var cap = box(cw+0.10, 0.07, cw+0.10, MAT.dark, 3.0);
+      cap.position.set(cx, top + 0.035, cz); g.add(cap);
+      var csn = box(cw+0.12, 0.05, cw+0.12, MAT.snow, 2.6);
+      csn.position.set(cx, top + 0.096, cz); g.add(csn);
+    })();
+
+    /* --- arbustos na fachada, com mini luzes -------------------------------- */
+    var shrubMat  = new THREE.MeshStandardMaterial({ color:0x223A1B, roughness:0.95, metalness:0 });
+    var shrubSnow = new THREE.MeshStandardMaterial({ color:0xD6E2EC, roughness:0.85, metalness:0 });
+    var shrubs = [[-1.64,0.30],[-1.64,-0.60],[1.64,0.55],[1.64,-0.45],[-1.20,1.74],[-0.34,1.76]];
+    shrubs.forEach(function(p, i){
+      if(isMobile && i>3) return;
+      var r = rand(0.20, 0.28);
+      var sh = new THREE.Mesh(new THREE.IcosahedronGeometry(r, 1), shrubMat);
+      sh.position.set(p[0], r*0.78, p[1]); sh.scale.y = 0.86; g.add(sh);
+      var cap = new THREE.Mesh(new THREE.IcosahedronGeometry(r*0.86, 1), shrubSnow);
+      cap.position.set(p[0], r*0.78 + r*0.30, p[1]); cap.scale.set(1, 0.42, 1); g.add(cap);
+      var nb = isMobile ? 3 : 7;
+      for(var k=0;k<nb;k++){
+        var a = Math.random()*TAU, e = rand(-0.2, 0.9);
+        bulbs.add(p[0] + Math.cos(a)*r*0.98, GROUND + r*0.78 + Math.sin(e)*r*0.9, p[1] + Math.sin(a)*r*0.98,
+          pick(WARM), 0.029, 1, rand(1.4,3.0));
+      }
+    });
+
+    /* ====== CORDOES DE LUZ NA CASA (o produto) ============================== */
+    var eY = EAVE_Y + 0.008, zf = EAVE_ZF + 0.042, zb = EAVE_ZB - 0.042;
+    var sp = isMobile ? 0.28 : 0.145;
+
+    lightRun(bulbs, root, [ RY(EAVE_X0+0.05, eY, zf), RY(EAVE_X1-0.05, eY, zf) ],
+      { spacing:sp, sag:0.018, mode:2, pal:WARM, speed:1.25 });
+    lightRun(bulbs, root, [ RY(EAVE_X0+0.05, eY, zb), RY(EAVE_X1-0.05, eY, zb) ],
+      { spacing:sp*1.3, sag:0.018, mode:0, pal:WARM });
+    [-1,1].forEach(function(sgn){
+      var x = sgn*(mHl + 0.025);
+      lightRun(bulbs, root, [ RY(x, eY, zf), RY(x, RIDGE_Y + 0.085, MCZ), RY(x, eY, zb) ],
+        { spacing:sp*1.05, sag:0.016, mode:0, pal:WARM });
+    });
+    /* frontao da ala: o "V" invertido visto da rua */
+    lightRun(bulbs, root, [
+      RY(WCX - wHw + 0.02, WY1 - 0.015, WZF + 0.025),
+      RY(WCX, WY1 + wRise + 0.075, WZF + 0.025),
+      RY(WCX + wHw - 0.02, WY1 - 0.015, WZF + 0.025)
+    ], { spacing:sp*0.92, sag:0.016, mode:2, pal:WARM, speed:1.5 });
+    [-1,1].forEach(function(sgn){
+      lightRun(bulbs, root, [ RY(WCX + sgn*(wHw+0.02), WY1 - 0.015, WZF - 0.02), RY(WCX + sgn*(wHw+0.02), WY1 - 0.015, WCZ - wHl + 0.12) ],
+        { spacing:sp*1.25, sag:0.02, mode:0, pal:WARM });
+    });
+    /* borda do alpendre */
+    lightRun(bulbs, root, [ RY(PX0+0.02, PY + 0.02, PZF + 0.10), RY(PX1-0.02, PY + 0.02, PZF + 0.10) ],
+      { spacing:sp*0.95, sag:0.030, mode:0, pal:WARM });
+    /* pilares do alpendre com fita espiral */
+    [PX0+0.06, PX1-0.06].forEach(function(px){
+      var n = isMobile ? 6 : 13;
+      for(var i=0;i<n;i++){
+        var f = i/(n-1), a = f*TAU*2.4;
+        bulbs.add(px + Math.cos(a)*0.078, GROUND + 0.16 + f*(PY-0.22), PZF - 0.09 + Math.sin(a)*0.078,
+          pick(WARM), 0.027, 1, rand(1.5,3.0));
+      }
+    });
+
+    HOUSE.eave = { y:EAVE_Y, zf:EAVE_ZF, x0:EAVE_X0, x1:EAVE_X1 };
+    HOUSE.ridgeY = RIDGE_Y;
+  })();
+
+  /* ================= ARVORES DO QUINTAL ==================================== */
+  function yardTree(cx, cz, scale, nBulbs, festive){
     var g = new THREE.Group();
     g.position.set(cx, GROUND, cz);
-
-    var trunkMat = new THREE.MeshStandardMaterial({ color:0x452a1c, roughness:0.9, metalness:0.04 });
-    var trunk = new THREE.Mesh(new THREE.CylinderGeometry(0.14*scale, 0.2*scale, 0.55*scale, 12), trunkMat);
-    trunk.position.y = 0.24*scale; g.add(trunk);
-
-    /* camadas de cone (mais escuro embaixo -> mais claro no topo) */
+    root.add(g);
+    var trunk = new THREE.Mesh(new THREE.CylinderGeometry(0.055*scale, 0.088*scale, 0.5*scale, 8), MAT.wood);
+    trunk.position.y = 0.22*scale; g.add(trunk);
     var tiers = [
-      { base:0.30, h:1.35, r:1.30, col:0x244019 },
-      { base:1.18, h:1.20, r:1.02, col:0x2C4A20 },
-      { base:1.96, h:1.05, r:0.76, col:0x335525 },
-      { base:2.64, h:0.90, r:0.50, col:0x3F6A2C }
+      { base:0.26, h:1.05, r:0.78, col:0x1E3517 },
+      { base:0.94, h:0.92, r:0.62, col:0x24401B },
+      { base:1.58, h:0.78, r:0.46, col:0x2B4A20 },
+      { base:2.12, h:0.62, r:0.31, col:0x335525 }
     ];
-    var topTip = 0;
+    var top = 0;
     tiers.forEach(function(t){
-      var geo = new THREE.ConeGeometry(t.r*scale, t.h*scale, 36, 5, true);
-      /* jitter organico leve nos vertices (nao na ponta) */
+      var geo = new THREE.ConeGeometry(t.r*scale, t.h*scale, isMobile?20:30, 4, true);
       var pos = geo.attributes.position, v = new THREE.Vector3();
       for(var i=0;i<pos.count;i++){
         v.fromBufferAttribute(pos,i);
-        var yr = (v.y + (t.h*scale)/2) / (t.h*scale);   /* 0 base -> 1 topo */
-        if(yr < 0.96){
-          var j = 1 + (Math.random()-0.5)*0.09;
-          v.x *= j; v.z *= j;
-          v.y += (Math.random()-0.5)*0.03*scale;
-        }
+        var yr = (v.y + (t.h*scale)/2) / (t.h*scale);
+        if(yr < 0.95){ var j = 1 + (Math.random()-0.5)*0.10; v.x *= j; v.z *= j; v.y += (Math.random()-0.5)*0.03*scale; }
         pos.setXYZ(i, v.x, v.y, v.z);
       }
-      geo.computeVertexNormals();                       /* normais suaves -> sem costura */
-      var m = new THREE.MeshStandardMaterial({ color:t.col, roughness:0.86, metalness:0.02 });
-      var cone = new THREE.Mesh(geo, m);
+      geo.computeVertexNormals();
+      var cone = new THREE.Mesh(geo, new THREE.MeshStandardMaterial({ color:t.col, roughness:0.92, metalness:0.0 }));
       cone.position.y = t.base*scale + (t.h*scale)/2;
       g.add(cone);
-      topTip = Math.max(topTip, (t.base + t.h)*scale);
+      var sn = new THREE.Mesh(new THREE.ConeGeometry(t.r*scale*0.54, t.h*scale*0.26, isMobile?16:22, 1, true), MAT.snow);
+      sn.position.y = t.base*scale + t.h*scale*0.845;
+      g.add(sn);
+      top = Math.max(top, (t.base + t.h)*scale);
     });
-
-    root.add(g);
-
-    /* pisca-pisca na superficie dos cones (coords world = pos da arvore + local) */
-    var wsum = tiers.reduce(function(s,t){ return s+t.r; }, 0);
-    for(var i=0;i<bulbCount;i++){
-      var pick = Math.random()*wsum, acc=0, t=tiers[0];
-      for(var k=0;k<tiers.length;k++){ acc+=tiers[k].r; if(pick<=acc){ t=tiers[k]; break; } }
-      var u = 0.08 + Math.random()*0.86;
-      var radL = t.r*scale*(1-u)*1.05;
-      var th = Math.random()*Math.PI*2;
-      addBulb(cx + Math.cos(th)*radL, GROUND + (t.base*scale + u*t.h*scale), cz + Math.sin(th)*radL, PAL[(Math.random()*PAL.length)|0], scale*0.95);
+    var pal = festive ? FESTIVE : WARM;
+    for(var i=0;i<nBulbs;i++){
+      var f = i/nBulbs;
+      var yl = 0.30 + f*(top - 0.55);
+      var rr = (0.80 - 0.66*f)*scale*0.99;
+      var a  = f*TAU*3.6;
+      bulbs.add(cx + Math.cos(a)*rr, GROUND + yl, cz + Math.sin(a)*rr,
+        pal[i % pal.length], 0.033*Math.max(0.85,scale), (i%5===0)?1:0, rand(1.3,2.8), -i*0.30);
     }
-
-    return { group:g, topTip:topTip, cx:cx, cz:cz };
+    return { top:top, cx:cx, cz:cz };
   }
 
-  /* ================= CASA (produto principal) ================= */
-  var houseSpin = null;
-  function makeHouse(cx, cz, scale){
-    var g = new THREE.Group();
-    g.position.set(cx, GROUND, cz);
+  var treeL = yardTree(-2.66, -0.60, 1.02, isMobile ? 16 : 30, true);
+  yardTree( 2.58, -0.35, 0.80, isMobile ? 12 : 22, false);
+  if(!isMobile) yardTree(-2.00, -2.45, 0.62, 12, false);
 
-    var bw=1.9*scale, bh=1.35*scale, bd=1.55*scale, rh=0.9*scale;
-    var over=0.12*scale;
-
-    /* corpo creme */
-    var wallMat = new THREE.MeshStandardMaterial({ color:0xE9DCC2, roughness:0.85, metalness:0.02 });
-    var body = new THREE.Mesh(new THREE.BoxGeometry(bw, bh, bd), wallMat);
-    body.position.y = bh/2; g.add(body);
-
-    /* telhado em duas aguas (prisma triangular via extrude) */
-    var hw = bw/2 + over, dep = bd + over*2;
-    var shape = new THREE.Shape();
-    shape.moveTo(-hw,0); shape.lineTo(hw,0); shape.lineTo(0,rh); shape.closePath();
-    var roofGeo = new THREE.ExtrudeGeometry(shape, { depth:dep, bevelEnabled:false });
-    roofGeo.translate(0,0,-dep/2);
-    var roofMat = new THREE.MeshStandardMaterial({ color:0x3A2A24, roughness:0.8, metalness:0.05 });
-    var roof = new THREE.Mesh(roofGeo, roofMat);
-    roof.position.y = bh; g.add(roof);
-
-    var frontZ = bd/2;
-    var doorMat = new THREE.MeshStandardMaterial({ color:0x5A3A28, roughness:0.7, metalness:0.05, emissive:0x2A1608, emissiveIntensity:0.4 });
-    var door = new THREE.Mesh(new THREE.BoxGeometry(0.4*scale, 0.72*scale, 0.06*scale), doorMat);
-    door.position.set(0, 0.36*scale, frontZ+0.01); g.add(door);
-
-    /* janelas com luz quente interna (emissivas) */
-    var winMat = new THREE.MeshStandardMaterial({ color:0xFFE6B8, emissive:0xFFC169, emissiveIntensity:1.15, roughness:0.3, metalness:0, toneMapped:false });
-    [-0.56, 0.56].forEach(function(wx){
-      var win = new THREE.Mesh(new THREE.BoxGeometry(0.36*scale, 0.36*scale, 0.05*scale), winMat.clone());
-      win.position.set(wx*scale, 0.82*scale, frontZ+0.01); g.add(win);
-      /* moldura fina */
-      var fr = new THREE.Mesh(new THREE.BoxGeometry(0.44*scale, 0.44*scale, 0.03*scale), new THREE.MeshStandardMaterial({ color:0xE9DCC2, roughness:0.8 }));
-      fr.position.set(wx*scale, 0.82*scale, frontZ+0.005); g.add(fr);
-    });
-
-    root.add(g);
-
-    /* 1 PointLight quente dentro da casa (unica point real da casa) */
-    var inner = new THREE.PointLight(0xFFB861, isMobile?2.4:3.4, 4.5*scale, 2.2);
-    inner.position.set(cx, GROUND+0.75*scale, cz+0.2*scale); root.add(inner);
-
-    /* ---- CORDAO DE PISCA-PISCA na casa (destaque) ---- */
-    var y0 = GROUND + bh;                 /* linha do beiral */
-    var apex = GROUND + bh + rh;          /* cumeeira */
-    var fz = cz + hw*0 + (bd+over*2)/2 + 0.04;   /* z da fachada do telhado */
-    var lx = cx - hw, rx = cx + hw;
-    var eaveN = isMobile ? 7 : 10;
-    var slopeN = isMobile ? 5 : 7;
-    /* beiral frontal */
-    bulbLine([lx, y0, fz], [rx, y0, fz], eaveN, scale*0.95);
-    /* duas aguas do gable frontal */
-    bulbLine([lx, y0, fz], [cx, apex, fz], slopeN, scale*0.95);
-    bulbLine([rx, y0, fz], [cx, apex, fz], slopeN, scale*0.95);
-    if(!isMobile){
-      /* beirais laterais (desktop) para envolver a casa */
-      var bz = cz - (bd+over*2)/2 - 0.02, fzb = cz + (bd+over*2)/2 + 0.02;
-      bulbLine([lx, y0, fzb], [lx, y0, bz], 4, scale*0.9);
-      bulbLine([rx, y0, fzb], [rx, y0, bz], 4, scale*0.9);
-    }
-
-    return { group:g, cx:cx, cz:cz };
-  }
-
-  /* ================= COMPOSICAO ================= */
-  var trees = [];
-  var house = makeHouse(0, 0.2, 1.0);
-
-  if(isMobile){
-    /* mobile: casa + 2 arvores, densidade reduzida */
-    trees.push(makeTree(-2.35, -0.4, 0.92, 12));
-    trees.push(makeTree( 2.25, -0.2, 0.74, 9));
-  }else{
-    /* desktop: casa + 4 arvores em profundidade */
-    trees.push(makeTree(-2.75, -0.5, 1.05, 20));   /* grande, esquerda */
-    trees.push(makeTree( 2.55, -0.3, 0.9,  16));   /* media, direita */
-    trees.push(makeTree(-1.35, -2.4, 0.6,  8));    /* pequena, fundo esq */
-    trees.push(makeTree( 1.55, -2.6, 0.55, 7));    /* pequena, fundo dir */
-  }
-
-  /* estrela na arvore mais alta */
-  var tall = trees[0];
-  var starMat = new THREE.MeshStandardMaterial({ color:0xFFCE7B, emissive:0xFFB347, emissiveIntensity:1.15, metalness:0.35, roughness:0.3, toneMapped:false });
-  function starShape(spikes, outer, inner){
-    var s = new THREE.Shape(), step = Math.PI/spikes;
+  /* estrela discreta no topo da arvore da frente */
+  var starMat = new THREE.MeshStandardMaterial({ color:0xFFCE7B, emissive:0xFFB347, emissiveIntensity:1.2,
+    metalness:0.35, roughness:0.3, toneMapped:false, fog:false });
+  var star = (function(){
+    var s = new THREE.Shape(), spikes = 5, outer = 0.17, inner = 0.072, step = Math.PI/spikes;
     for(var i=0;i<2*spikes;i++){
       var r = (i%2===0)?outer:inner, a = i*step - Math.PI/2;
-      var x = Math.cos(a)*r, y = Math.sin(a)*r;
-      i===0 ? s.moveTo(x,y) : s.lineTo(x,y);
+      var x = Math.cos(a)*r, yy = Math.sin(a)*r;
+      i===0 ? s.moveTo(x,yy) : s.lineTo(x,yy);
     }
-    s.closePath(); return s;
-  }
-  var star = new THREE.Mesh(
-    new THREE.ExtrudeGeometry(starShape(5, 0.34, 0.14), { depth:0.08, bevelEnabled:true, bevelThickness:0.025, bevelSize:0.025, bevelSegments:1 }),
-    starMat
-  );
-  star.position.set(tall.cx, GROUND + tall.topTip + 0.26, tall.cz);
-  root.add(star);
-  var starLight = new THREE.PointLight(0xFFCE7B, isMobile?3:4.5, 6, 2);
-  starLight.position.set(tall.cx, GROUND + tall.topTip + 0.26, tall.cz + 0.4);
-  root.add(starLight);
+    s.closePath();
+    var m = new THREE.Mesh(new THREE.ExtrudeGeometry(s, { depth:0.05, bevelEnabled:true, bevelThickness:0.014, bevelSize:0.014, bevelSegments:1 }), starMat);
+    m.position.set(treeL.cx, GROUND + treeL.top + 0.16, treeL.cz);
+    root.add(m);
+    addGlow(root, treeL.cx, GROUND + treeL.top + 0.16, treeL.cz + 0.10, 1.1, 0xFFCE7B, 0.55);
+    return m;
+  })();
 
-  /* ================= INTERACAO: arrastar p/ orbitar; auto-rotacao ociosa ==== */
+  /* ================= ESCADA apoiada no beiral frontal ====================== */
+  var LAD_BASE = V3(1.62, GROUND + 0.02, 2.06);
+  var LAD_TOP  = V3(1.44, GROUND + HOUSE.eave.y + 0.10, HOUSE.eave.zf - 0.10);
+  (function(){
+    var dir = LAD_TOP.clone().sub(LAD_BASE);
+    var len = dir.length();
+    var g = new THREE.Group();
+    g.position.copy(LAD_BASE);
+    g.quaternion.setFromUnitVectors(V3(0,1,0), dir.clone().normalize());
+    root.add(g);
+    [-0.115, 0.115].forEach(function(off){
+      var rail = new THREE.Mesh(new THREE.BoxGeometry(0.036, len, 0.058), MAT.metal);
+      rail.position.set(off, len/2, 0); g.add(rail);
+    });
+    var n = 8;
+    for(var i=1;i<n;i++){
+      var rung = new THREE.Mesh(new THREE.BoxGeometry(0.245, 0.026, 0.036), MAT.metal);
+      rung.position.set(0, len*i/n, 0); g.add(rung);
+    }
+    HOUSE.ladderDir = dir.clone().normalize();
+    HOUSE.ladderLen = len;
+  })();
+
+  /* ================= PESSOAS INSTALANDO AS LUZES =========================== */
+  function makePerson(cfg){
+    var S = cfg.scale || 1;
+    var coat  = new THREE.MeshStandardMaterial({ color:cfg.coat, roughness:0.86, metalness:0.0 });
+    var pants = new THREE.MeshStandardMaterial({ color:cfg.pants || 0x2A3244, roughness:0.9 });
+    var skin  = new THREE.MeshStandardMaterial({ color:cfg.skin || 0xC9A184, roughness:0.72 });
+    var hat   = new THREE.MeshStandardMaterial({ color:cfg.hat || 0xF0EAE0, roughness:0.95 });
+    var boot  = new THREE.MeshStandardMaterial({ color:0x1B1B1E, roughness:0.9 });
+    var g = new THREE.Group();
+
+    [-0.062, 0.062].forEach(function(x){
+      var lg = new THREE.Group(); lg.position.set(x*S, 0.44*S, 0);
+      var m = new THREE.Mesh(new THREE.CapsuleGeometry(0.048*S, 0.30*S, 3, 8), pants);
+      m.position.y = -0.19*S; lg.add(m);
+      var b = new THREE.Mesh(new THREE.BoxGeometry(0.09*S, 0.06*S, 0.16*S), boot);
+      b.position.set(0, -0.41*S, 0.028*S); lg.add(b);
+      g.add(lg);
+    });
+
+    var torso = new THREE.Group(); torso.position.y = 0.44*S; g.add(torso);
+    var tm = new THREE.Mesh(new THREE.CapsuleGeometry(0.093*S, 0.20*S, 4, 10), coat);
+    tm.position.y = 0.15*S; tm.scale.z = 0.80; torso.add(tm);
+    var vest = new THREE.Mesh(new THREE.CylinderGeometry(0.099*S, 0.099*S, 0.036*S, 12),
+      new THREE.MeshStandardMaterial({ color:0xFFE7B8, emissive:0xFFCE7B, emissiveIntensity:0.6, roughness:0.5, toneMapped:false, fog:false }));
+    vest.position.y = 0.12*S; vest.scale.z = 0.80; torso.add(vest);
+
+    var head = new THREE.Group(); head.position.y = 0.34*S; torso.add(head);
+    head.add(new THREE.Mesh(new THREE.SphereGeometry(0.070*S, 14, 12), skin));
+    var cap = new THREE.Mesh(new THREE.SphereGeometry(0.077*S, 14, 10, 0, TAU, 0, Math.PI*0.58), hat);
+    cap.position.y = 0.012*S; head.add(cap);
+    var brim = new THREE.Mesh(new THREE.TorusGeometry(0.071*S, 0.017*S, 6, 16), hat);
+    brim.rotation.x = Math.PI/2; brim.position.y = 0.024*S; head.add(brim);
+    var pom = new THREE.Mesh(new THREE.SphereGeometry(0.028*S, 8, 6), hat);
+    pom.position.y = 0.086*S; head.add(pom);
+
+    function arm(x){
+      var a = new THREE.Group(); a.position.set(x*S, 0.255*S, 0); torso.add(a);
+      var m = new THREE.Mesh(new THREE.CapsuleGeometry(0.036*S, 0.20*S, 3, 8), coat);
+      m.position.y = -0.125*S; a.add(m);
+      var h = new THREE.Mesh(new THREE.SphereGeometry(0.041*S, 8, 6),
+        new THREE.MeshStandardMaterial({ color:0x3A3A40, roughness:0.9 }));
+      h.position.y = -0.248*S; a.add(h);
+      a.userData.hand = h;
+      return a;
+    }
+    return { group:g, torso:torso, head:head, armL:arm(-0.112), armR:arm(0.112), scale:S };
+  }
+
+  /* pessoa A: na escada, fixando o cordao no beiral */
+  var pA = makePerson({ scale:0.95, coat:0x971B2F, hat:0xF0EAE0, pants:0x2A3244 });
+  var aPos = LAD_BASE.clone().addScaledVector(HOUSE.ladderDir, HOUSE.ladderLen*0.50);
+  aPos.z += 0.20; aPos.x += 0.03;
+  pA.group.position.copy(aPos);
+  pA.group.rotation.y = Math.PI + 0.26;
+  root.add(pA.group);
+  pA.armR.rotation.x = -2.05; pA.armR.rotation.z = 0.30;
+  pA.armL.rotation.x = -0.42; pA.armL.rotation.z = -0.50;
+  pA.head.rotation.x = -0.34;
+  (function(){
+    var reel = new THREE.Mesh(new THREE.CylinderGeometry(0.052, 0.052, 0.048, 12), MAT.dark);
+    reel.rotation.z = Math.PI/2; reel.position.y = -0.30*pA.scale;
+    pA.armL.add(reel);
+  })();
+
+  /* pessoa B: no chao, segurando o rolo e passando o cordao */
+  var pB = makePerson({ scale:0.95, coat:0x335525, hat:0xC26E60, pants:0x25303F, skin:0xB98A6A });
+  pB.group.position.set(0.44, GROUND, 2.60);
+  pB.group.rotation.y = -0.62;
+  root.add(pB.group);
+  pB.armL.rotation.x = -0.72; pB.armL.rotation.z = -0.34;
+  pB.armR.rotation.x = -0.72; pB.armR.rotation.z = 0.34;
+  pB.head.rotation.x = -0.50; pB.head.rotation.y = 0.30;
+
+  var spool = new THREE.Group();
+  (function(){
+    var drum = new THREE.Mesh(new THREE.CylinderGeometry(0.096, 0.096, 0.12, 14),
+      new THREE.MeshStandardMaterial({ color:0x2E2A28, roughness:0.85 }));
+    drum.rotation.z = Math.PI/2; spool.add(drum);
+    [-0.075, 0.075].forEach(function(o){
+      var d = new THREE.Mesh(new THREE.CylinderGeometry(0.132, 0.132, 0.018, 16),
+        new THREE.MeshStandardMaterial({ color:0x971B2F, roughness:0.7 }));
+      d.rotation.z = Math.PI/2; d.position.x = o; spool.add(d);
+    });
+    spool.position.set(0.53, GROUND + 0.505, 2.90);
+    spool.rotation.y = -0.62;
+    root.add(spool);
+  })();
+
+  /* cordao em instalacao: rolo -> mao da pessoa A -> beiral (+ trecho apagado) */
+  root.updateMatrixWorld(true);
+  (function(){
+    var handW = new THREE.Vector3();
+    pA.armR.userData.hand.getWorldPosition(handW);
+    root.worldToLocal(handW);
+    var eaveHook = V3(HOUSE.eave.x1 - 0.34, GROUND + HOUSE.eave.y - 0.02, HOUSE.eave.zf + 0.03);
+    lightRun(bulbs, root, [ V3(spool.position.x + 0.07, spool.position.y + 0.13, spool.position.z - 0.03), handW ],
+      { spacing:0.17, sag:0.17, mode:1, pal:WARM, speed:2.1, r:0.031 });
+    lightRun(bulbs, root, [ handW, eaveHook ],
+      { spacing:0.15, sag:0.05, mode:1, pal:WARM, speed:2.1, r:0.031 });
+    lightRun(bulbs, root, [ eaveHook, V3(HOUSE.eave.x1 + 0.34, GROUND + HOUSE.eave.y - 0.30, HOUSE.eave.zf + 0.20) ],
+      { spacing:0.16, sag:0.12, mode:3, color:0x6B6152, r:0.029 });
+  })();
+
+  /* ================= LUZES ATRAS DA CASA (backdrop, nao gira) ============== */
+  (function(){
+    addGlow(backdrop, -0.6, GROUND + 2.2, -6.6, 8.4, 0xFF9A46, 0.16);
+    addGlow(backdrop,  2.9, GROUND + 1.7, -7.8,  5.6, 0xFFB65E, 0.14);
+    addGlow(backdrop, -3.7, GROUND + 1.9, -8.4,  5.8, 0xC2543F, 0.115);
+
+    var darkTree = new THREE.MeshStandardMaterial({ color:0x07120A, roughness:1.0, metalness:0.0 });
+    var far = isMobile
+      ? [[-4.4,-7.2,2.5],[3.9,-7.8,2.2],[-1.4,-9.6,3.0]]
+      : [[-4.4,-7.2,2.6],[3.9,-7.8,2.3],[-1.4,-9.6,3.2],[6.2,-9.0,2.7],[-7.0,-8.6,2.9],[1.6,-11.4,3.6],[-9.2,-10.8,3.1]];
+    far.forEach(function(t, ti){
+      var x = t[0], z = t[1], h = t[2];
+      var g = new THREE.Group(); g.position.set(x, GROUND, z); backdrop.add(g);
+      for(var k=0;k<3;k++){
+        var r = (0.85 - k*0.20) * (h/2.8);
+        var cone = new THREE.Mesh(new THREE.ConeGeometry(r, h*0.52, 12, 1, true), darkTree);
+        cone.position.y = h*0.24 + k*h*0.26; g.add(cone);
+      }
+      var n = isMobile ? 7 : 15;
+      for(var i=0;i<n;i++){
+        var f = i/n, a = f*TAU*3.0;
+        var rr = (0.85 - 0.62*f) * (h/2.8) * 1.02;
+        farBulbs.add(x + Math.cos(a)*rr, GROUND + 0.25 + f*(h*0.95), z + Math.sin(a)*rr,
+          FESTIVE[(i+ti) % FESTIVE.length], 0.050, (i%4===0)?1:0, rand(1.2,2.6), -i*0.34);
+      }
+    });
+
+    var nb = isMobile ? [[-7.8,-12.5,1.5],[6.4,-13.2,1.6]] : [[-7.8,-12.5,1.5],[6.4,-13.2,1.6],[0.4,-14.6,1.4],[-13.2,-13.8,1.5]];
+    nb.forEach(function(p){
+      var x = p[0], z = p[1], h = p[2], w = h*1.7;
+      var m = new THREE.Mesh(new THREE.BoxGeometry(w, h, 1.2), darkTree);
+      m.position.set(x, GROUND + h/2, z); backdrop.add(m);
+      var rf = new THREE.Mesh(new THREE.ConeGeometry(w*0.76, h*0.50, 4), darkTree);
+      rf.rotation.y = Math.PI/4; rf.position.set(x, GROUND + h + h*0.25, z); backdrop.add(rf);
+      var n = isMobile ? 5 : 8;
+      for(var i=0;i<n;i++){
+        farBulbs.add(x - w/2 + (i+0.5)*(w/n), GROUND + h + 0.03, z + 0.62, 0xFFCE7B, 0.044, 0, 1.0, i*0.5);
+      }
+      addGlow(backdrop, x, GROUND + h*0.55, z + 0.70, w*0.85, 0xFF9A46, 0.14);
+    });
+
+    var nbk = isMobile ? 12 : 26;
+    for(var i=0;i<nbk;i++){
+      farBulbs.add(rand(-11, 11), GROUND + rand(0.15, 2.9), rand(-13.5, -5.5),
+        pick(FESTIVE), 0.028, 1, rand(0.8, 2.2));
+    }
+  })();
+
+  bulbs.build();
+  farBulbs.build();
+
+  /* ================= NEVE CAINDO =========================================== */
+  var snowFall = (function(){
+    var n = isMobile ? 55 : 105;
+    var pos = new Float32Array(n*3), vel = new Float32Array(n*2);
+    for(var i=0;i<n;i++){
+      pos[i*3]   = rand(-6.5, 6.5);
+      pos[i*3+1] = rand(GROUND, GROUND + 8.0);
+      pos[i*3+2] = rand(-5.5, 5.0);
+      vel[i*2]   = rand(0.28, 0.72);
+      vel[i*2+1] = rand(0, TAU);
+    }
+    var g = new THREE.BufferGeometry();
+    g.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+    var m = new THREE.PointsMaterial({ size:0.055, map:haloTex, color:0xE8F1FA, transparent:true,
+      opacity:0.72, depthWrite:false, sizeAttenuation:true, fog:true });
+    var p = new THREE.Points(g, m); p.frustumCulled = false;
+    scene.add(p);
+    return { pts:p, pos:pos, vel:vel, n:n };
+  })();
+
+  /* ================= SOMBRAS (so desktop: e o que tira o ar de "brinquedo") = */
+  var shadowsOn = false, shadowTick = 0;
+  if(!isMobile){
+    try{
+      renderer.shadowMap.enabled = true;
+      renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+      /* a cena gira devagar: refazer o shadow map a cada frame era o maior custo.
+         autoUpdate off + refresh manual a cada N frames = mesma leitura, fracao do custo. */
+      renderer.shadowMap.autoUpdate = false;
+      renderer.shadowMap.needsUpdate = true;
+      shadowsOn = true;
+      moon.castShadow = true;
+      moon.shadow.mapSize.set(768, 768);
+      moon.shadow.bias = -0.0012;
+      moon.shadow.normalBias = 0.028;
+      var sc = moon.shadow.camera;
+      sc.left = -6.4; sc.right = 6.4; sc.top = 7.0; sc.bottom = -3.2;
+      sc.near = 0.5;  sc.far = 26; sc.updateProjectionMatrix();
+      root.traverse(function(o){
+        if(o.isMesh && !o.isInstancedMesh){
+          o.receiveShadow = true;
+          o.castShadow = !o.userData.noCast;
+        }
+      });
+    }catch(e){ renderer.shadowMap.enabled = false; shadowsOn = false; }
+  }
+
+  /* ============ AUTO-DEGRADE: GPU fraca nunca fica com o hero travado =======
+     Duas janelas seguidas abaixo de 26fps -> corta sombra, envMap, normal maps,
+     neve e pixelRatio. A cena continua (casa + luzes + pessoas), so mais barata.
+     ?hq=1 desliga o rebaixamento (usado pelo QA visual).                       */
+  var HQ = (location.search.indexOf('hq=1') >= 0);
+  var pfN = 0, pfT0 = 0, pfBad = 0, degraded = false;
+  function degrade(){
+    if(degraded) return; degraded = true;
+    try{
+      if(renderer.shadowMap.enabled){ renderer.shadowMap.enabled = false; shadowsOn = false; }
+      scene.environment = null;
+      renderer.setPixelRatio(1);
+      if(snowFall && snowFall.pts) snowFall.pts.visible = false;
+      [MAT.siding, MAT.roof, MAT.brick, MAT.snow, MAT.ground].forEach(function(m){
+        m.normalMap = null; m.aoMap = null; m.needsUpdate = true;
+      });
+      resize();
+    }catch(e){}
+  }
+
+  /* ================= INTERACAO ============================================= */
   var loopMode = !reduce;
-  var dragging=false, lastX=0, lastY=0, autoVel=0.0026, inertia=0, tiltX=0, targetTilt=0;
+  var dragging=false, lastX=0, lastY=0, autoVel=0.0011, inertia=0, tiltX=0, targetTilt=0;
 
   function needRender(){ renderer.render(scene, camera); }
 
@@ -1922,37 +2575,68 @@ section{position:relative}
     if(!dragging) return;
     var dx=e.clientX-lastX, dy=e.clientY-lastY; lastX=e.clientX; lastY=e.clientY;
     root.rotation.y += dx*0.0085; inertia = dx*0.0085;
-    targetTilt = clamp(targetTilt + dy*0.004, -0.26, 0.22);
+    targetTilt = clamp(targetTilt + dy*0.004, -0.22, 0.20);
     if(!loopMode){ tiltX = targetTilt; root.rotation.x = tiltX; needRender(); }
   });
   function endDrag(){ dragging=false; mount.classList.remove('dragging'); }
   window.addEventListener('pointerup', endDrag);
   window.addEventListener('pointercancel', endDrag);
 
-  /* ================= LOOP / render sob demanda ================= */
-  var running=false, rafId=null, inView=true;
+  /* ================= LOOP ================================================== */
+  var running=false, rafId=null, inView=true, tPrev=0;
   function frame(t){
     rafId = requestAnimationFrame(frame);
     var time = t*0.001;
+    var dt = tPrev ? Math.min(0.05, time - tPrev) : 0.016; tPrev = time;
+
     if(!dragging){ root.rotation.y += autoVel + inertia; inertia *= 0.94; targetTilt *= 0.96; }
     tiltX += (targetTilt - tiltX)*0.1; root.rotation.x = tiltX;
-    star.rotation.z += 0.01;
-    for(var i=0;i<bulbs.length;i++){
-      var bl = bulbs[i];
-      var k = 0.5 + 0.5*Math.sin(time*bl.speed + bl.phase);
-      var e = bl.lo + (bl.hi-bl.lo)*k;
-      bl.mat.emissiveIntensity = e;
-      bl.sprMat.opacity = 0.35 + 0.55*k;
-      var s = bl.s0*(0.82 + 0.4*k);
-      bl.spr.scale.set(s,s,s);
+    if(shadowsOn && (++shadowTick % 12 === 0)) renderer.shadowMap.needsUpdate = true;
+
+    bulbs.update(time, false);
+    farBulbs.update(time, false);
+    starMat.emissiveIntensity = 1.0 + 0.35*Math.sin(time*1.6);
+    star.rotation.z += 0.006;
+
+    /* instaladores: movimento sutil em loop */
+    var sA = Math.sin(time*0.9);
+    pA.armR.rotation.x = -2.05 + 0.22*sA;
+    pA.armR.rotation.z = 0.30 + 0.09*Math.sin(time*0.9 + 0.6);
+    pA.torso.rotation.y = 0.06*Math.sin(time*0.55);
+    pA.torso.rotation.z = 0.03*Math.sin(time*0.75);
+    pA.head.rotation.x = -0.34 + 0.07*Math.sin(time*0.7);
+
+    var sB = Math.sin(time*0.75);
+    pB.torso.rotation.y = -0.09 + 0.09*sB;
+    pB.armL.rotation.x = -0.72 + 0.09*sB;
+    pB.armR.rotation.x = -0.72 - 0.09*sB;
+    pB.head.rotation.y = 0.30 + 0.10*Math.sin(time*0.5);
+    pB.group.position.y = GROUND + 0.012*Math.abs(Math.sin(time*0.75));
+    spool.rotation.x += 0.012;
+
+    /* neve */
+    var sp = snowFall.pos, sv = snowFall.vel;
+    for(var i=0;i<snowFall.n;i++){
+      sp[i*3+1] -= sv[i*2]*dt;
+      sp[i*3]   += Math.sin(time*0.7 + sv[i*2+1])*0.0022;
+      if(sp[i*3+1] < GROUND - 0.2){ sp[i*3+1] = GROUND + 8.0; sp[i*3] = rand(-6.5, 6.5); sp[i*3+2] = rand(-5.5, 5.0); }
     }
-    starMat.emissiveIntensity = 0.95 + 0.35*Math.sin(time*1.8);
+    snowFall.pts.geometry.attributes.position.needsUpdate = true;
+
+    if(!degraded && !HQ){
+      if(!pfT0) pfT0 = time;
+      pfN++;
+      if(time - pfT0 > 2.2){
+        if(pfN/(time - pfT0) < 26){ if(++pfBad >= 2) degrade(); } else pfBad = 0;
+        pfT0 = time; pfN = 0;
+      }
+    }
+
     renderer.render(scene, camera);
   }
-  function start(){ if(running) return; running=true; rafId=requestAnimationFrame(frame); }
+  function start(){ if(running) return; running=true; tPrev=0; rafId=requestAnimationFrame(frame); }
   function stop(){ running=false; if(rafId) cancelAnimationFrame(rafId); rafId=null; }
 
-  /* pausa quando o hero sai do viewport (bateria) */
   if('IntersectionObserver' in window){
     new IntersectionObserver(function(es){
       inView = es[0].isIntersecting;
@@ -1960,7 +2644,6 @@ section{position:relative}
     }, { threshold:0.04 }).observe(mount);
   }
 
-  /* redimensiona junto com o container */
   function resize(){
     var w=mount.clientWidth, h=mount.clientHeight; if(!w||!h) return;
     renderer.setSize(w,h); camera.aspect=w/h; camera.updateProjectionMatrix();
@@ -1969,18 +2652,21 @@ section{position:relative}
   if('ResizeObserver' in window){ new ResizeObserver(resize).observe(mount); }
   else window.addEventListener('resize', resize);
 
-  /* arranca: motion normal -> loop; reduced-motion -> quadro estatico */
+  /* motion normal -> loop; reduced-motion -> quadro estatico com as luzes acesas */
   if(loopMode){ start(); }
   else{
-    for(var j=0;j<bulbs.length;j++){ bulbs[j].mat.emissiveIntensity = 1.0; bulbs[j].sprMat.opacity = 0.7; }
+    bulbs.update(0, true);
+    farBulbs.update(0, true);
     needRender();
   }
-  mount.classList.add('ready');   /* faz o fallback sumir */
+  mount.classList.add('ready');
 
-  /* hook leve p/ QA (sem custo em runtime) */
+  /* hook leve p/ QA */
   window.__heroTree = {
     get ry(){ return root.rotation.y; }, get rx(){ return root.rotation.x; },
-    bulbs: bulbs.length, trees: trees.length, house: !!house, reduce: reduce, mobile: isMobile
+    bulbs: bulbs.count(), farBulbs: farBulbs.count(), people: 2,
+    get tex(){ return texReady; }, reduce: reduce, mobile: isMobile, version: 'v8-house',
+    get info(){ return { calls:renderer.info.render.calls, tris:renderer.info.render.triangles, geo:renderer.info.memory.geometries, tex:renderer.info.memory.textures, progs:renderer.info.programs?renderer.info.programs.length:0 }; }
   };
 })();
 </script>
