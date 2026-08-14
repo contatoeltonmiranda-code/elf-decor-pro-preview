@@ -4,10 +4,10 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Christmas &amp; Permanent Lighting Installation | Elf Decor Pro</title>
-<meta name="description" content="Christmas light rental, permanent lighting, and landscape lighting in MA, NH, and RI. We design, install, maintain, take down, and store it. Free quote.">
+<meta name="description" content="Christmas light rental, interior Christmas decor, permanent and landscape lighting in MA, NH, and RI. We design, install, maintain, and store it. Free quote.">
 <meta name="theme-color" content="#0E1A0B">
 <meta property="og:title" content="Stunning Lights, Fully Installed. You Never Touch a Ladder.">
-<meta property="og:description" content="Christmas light rental, permanent lighting, and landscape lighting in MA, NH, and RI. We design, install, maintain, take down, and store it. Free quote.">
+<meta property="og:description" content="Christmas light rental, interior Christmas decor, permanent and landscape lighting in MA, NH, and RI. We design, install, maintain, and store it. Free quote.">
 <meta property="og:type" content="website">
 <meta property="og:image" content="assets/logo/elf-logo-primary.png">
 <meta name="twitter:card" content="summary_large_image">
@@ -469,10 +469,60 @@ section{position:relative}
   .svc-list:hover .svc{opacity:.55;filter:blur(2.5px)}
   .svc-list:hover .svc:hover{opacity:1;filter:blur(0);transform:translateY(-5px);box-shadow:0 22px 54px rgba(34,48,28,.22)}
 }
-/* card invertido: imagem a DIREITA, texto a esquerda (item 7 - card Permanent Lighting) */
+/* card invertido: imagem a DIREITA, texto a esquerda.
+   Com 4 blocos o ritmo e: 1 Christmas (esq) / 2 Interior (dir) / 3 Permanent (esq) / 4 Landscape (dir) */
 .svc.rev{grid-template-columns:1.14fr .86fr}
 .svc.rev .svc-body{order:1}
 .svc.rev .svc-media{order:2}
+/* foto do card ainda inexistente: <img> nasce sem src. Sem esta regra o Chrome
+   desenha o ALT TEXT por cima do gradiente (armadilha ja vista nos comparadores). */
+.svc-media .svc-img:not([src]){display:none}
+/* quando a foto chega, o gradiente sai. O marcador [TO CONFIRM] CONTINUA visivel:
+   as fotos de interior sao geradas por IA, igual as dos outros 3 cards de servico,
+   e nao foto real de projeto do cliente. So sai quando o Higgor mandar as dele. */
+.svc-media.has-img .ph{display:none}
+
+/* ===== INTERIOR CHRISTMAS DECOR - galeria de 3 slots + paletas =====
+   Mesma logica dos comparadores: as <img> nascem so com data-src. Enquanto
+   INTERIOR_PHOTOS_READY for false, o slot mostra o gradiente do design system
+   + a legenda + o marcador [TO CONFIRM]. Zero request, zero 404. */
+.igal{list-style:none;display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:2px 0 10px}
+.igal-item{position:relative;aspect-ratio:4/3;border-radius:12px;overflow:hidden;
+  border:1px solid rgba(255,206,123,.42);box-shadow:0 8px 22px rgba(0,0,0,.28)}
+.igal-item.g1{background:linear-gradient(150deg,#0E1A0B 0%,#1B2E18 48%,#335525 100%)}
+.igal-item.g2{background:linear-gradient(150deg,#5A382A 0%,#971B2F 55%,#C26E60 100%)}
+.igal-item.g3{background:linear-gradient(150deg,#25401B 0%,#335525 52%,#7DA177 100%)}
+.igal-item::before{content:"";position:absolute;inset:0;z-index:1;pointer-events:none;
+  background:radial-gradient(circle at 30% 26%,rgba(255,206,123,.4),transparent 62%),
+             radial-gradient(circle at 76% 82%,rgba(255,206,123,.2),transparent 60%);
+  transition:opacity .3s}
+.igal-item.has-img::before{opacity:0}
+.igal-item img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:center;z-index:2}
+.igal-item img:not([src]){display:none}
+.igal-cap{position:absolute;left:0;right:0;bottom:0;z-index:3;padding:8px 10px;
+  font-family:'Cinzel',serif;font-size:10px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;
+  color:#FFF7EC;text-shadow:0 1px 5px rgba(0,0,0,.75);
+  background:linear-gradient(180deg,rgba(14,26,11,0),rgba(14,26,11,.72))}
+.igal-note{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin:0 0 18px}
+.igal-note .ph-tag{font-family:'Cinzel',serif;font-size:9.5px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;
+  color:#FFF7EC;background:rgba(14,26,11,.6);border:1px solid rgba(255,206,123,.45);padding:4px 10px;border-radius:50px}
+.igal-note .tc{font-size:10.5px;color:#FFE7C2;border-bottom-color:var(--glow)}
+
+.pal{margin:4px 0 18px;padding:18px 18px 16px;border-radius:16px;
+  background:rgba(14,26,11,.42);border:1px solid rgba(255,206,123,.28)}
+.pal-h{font-family:'Cinzel',serif;font-size:15px;letter-spacing:.6px;color:var(--glow);margin:0 0 8px}
+.pal-lead{font-size:13.5px;line-height:1.65;color:var(--on-dark2);margin:0 0 14px}
+.pal-grid{list-style:none;display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:0 0 12px}
+.pal-card{display:flex;flex-direction:column;gap:7px;padding:13px 13px 14px;border-radius:12px;
+  background:rgba(255,247,236,.06);border:1px solid rgba(125,161,119,.3)}
+.pal-sw{width:40px;height:22px;border-radius:50px;border:1px solid rgba(255,255,255,.35);
+  box-shadow:0 3px 10px rgba(0,0,0,.35)}
+.pal-sw.sw-gs{background:linear-gradient(100deg,#FFCE7B 0%,#E9C07A 46%,#D8DDE3 54%,#AFB8C2 100%)}
+.pal-sw.sw-rg{background:linear-gradient(100deg,#971B2F 0%,#B8354A 46%,#FFCE7B 54%,#E0A758 100%)}
+.pal-sw.sw-bs{background:linear-gradient(100deg,#2E5C93 0%,#4A7FB5 46%,#D8DDE3 54%,#AFB8C2 100%)}
+.pal-name{font-family:'Cinzel',serif;font-size:12.5px;font-weight:700;letter-spacing:.8px;color:#FFF7EC}
+.pal-desc{font-size:12.5px;line-height:1.55;color:var(--on-dark2)}
+.pal-micro{font-size:12.5px;font-style:italic;line-height:1.6;color:var(--glow);margin:0}
 
 /* ===== COMPARADOR ANTES/DEPOIS (arrastar) - Warm White x RGBW =====
    Vive dentro do .svc-body dos cards Permanent e Landscape.
@@ -533,6 +583,21 @@ section{position:relative}
    na base; a pill Preview e redundante (os rotulos ja dizem o que e) */
 @media(max-width:480px){.cmp-note .ph-tag{display:none}}
 @media(prefers-reduced-motion:reduce){.cmp-box{scroll-behavior:auto}}
+/* galeria e paletas do card de interior: 3 colunas viram 1 no telefone */
+@media(max-width:700px){
+  .igal{grid-template-columns:1fr 1fr;gap:8px}
+  .igal-item.g3{grid-column:1 / -1;aspect-ratio:16/9}
+  .pal{padding:15px 14px 14px}
+  .pal-grid{grid-template-columns:1fr;gap:9px}
+  .pal-card{flex-direction:row;flex-wrap:wrap;align-items:center;gap:9px}
+  .pal-sw{flex:none}
+  .pal-name{flex:1 1 auto}
+  .pal-desc{flex:1 1 100%}
+}
+@media(max-width:420px){
+  .igal{grid-template-columns:1fr}
+  .igal-item,.igal-item.g3{aspect-ratio:16/9}
+}
 
 /* ===== PROCESSO - TIMELINE COM FILL NO SCROLL (ref: KETOX/DIOGO .pillars) ===== */
 .sec-process{background:var(--cream);isolation:isolate;padding-top:124px}
@@ -1031,7 +1096,7 @@ section{position:relative}
 <!-- ============ MARQUEE X DUPLO ============ -->
 <div class="marquee" aria-hidden="true">
   <div class="marquee-bar back"><span class="mq-twinkle tl"></span><span class="mq-twinkle br"></span><div class="marquee-track" data-mq="design &middot; install &middot; maintain &middot; take down &middot; store"></div></div>
-  <div class="marquee-bar front"><span class="mq-twinkle tl"></span><span class="mq-twinkle br"></span><div class="marquee-track" data-mq="christmas lighting &middot; permanent lighting &middot; landscape lighting &middot; full service"></div></div>
+  <div class="marquee-bar front"><span class="mq-twinkle tl"></span><span class="mq-twinkle br"></span><div class="marquee-track" data-mq="christmas lighting &middot; interior christmas decor &middot; permanent lighting &middot; landscape lighting &middot; full service"></div></div>
 </div>
 
 <!-- ============ 2. PROBLEMA (fase NATAL: neve sutil) ============ -->
@@ -1115,8 +1180,8 @@ section{position:relative}
   <div class="wrap">
     <div class="center maxw sr-hidden">
       <span class="eyebrow terra">One company, all year</span>
-      <h2 id="services-h2">Three ways we light your property</h2>
-      <p class="lead">Christmas in the winter. Permanent and landscape lighting the rest of the year. One company, one point of contact.</p>
+      <h2 id="services-h2">Four ways we light your property</h2>
+      <p class="lead">Christmas inside and out. Permanent and landscape lighting the rest of the year. One company, one point of contact.</p>
     </div>
     <div class="svc-list">
 
@@ -1150,8 +1215,84 @@ section{position:relative}
         </div>
       </article>
 
-      <!-- Bloco 2 - Permanente: card CLARO, sem efeito de Natal. INVERTIDO: imagem a direita -->
-      <article class="svc day rev sr-hidden">
+      <!-- Bloco 2 - Interior Christmas Decor: card NOTURNO (mesma fase do Natal). INVERTIDO: imagem a direita.
+           Fotos ainda NAO existem: as <img> nascem com data-src e sem src (ver INTERIOR_PHOTOS_READY no JS). -->
+      <article class="svc night rev sr-hidden">
+        <div class="svc-media">
+          <div class="ph night" aria-hidden="true">
+            <span class="ph-alt">Lit wreath on the door and greenery garland up the columns</span>
+          </div>
+          <img class="svc-img" data-interior-img data-src="assets/interiors/interior-portico.jpg" alt="Home entryway with a lit wreath on the door and greenery garland wrapped around the columns">
+          <div class="svc-scrim" aria-hidden="true"></div>
+          <div class="snowfield" aria-hidden="true" data-snow="9"></div>
+          <span class="bokeh b2" aria-hidden="true"></span>
+          <span class="bokeh b3" aria-hidden="true"></span>
+          <div class="svc-media-label"><span class="ph-tag">Interior decor</span><span class="tc">[TO CONFIRM] placeholder photo</span></div>
+        </div>
+        <div class="svc-body">
+          <span class="svc-badge">Interior &amp; Entryway Decor</span>
+          <h3>Interior Christmas Decor</h3>
+          <p>Christmas doesn't stop at the front door. We decorate the inside of your property the same way we light the outside of it.</p>
+          <p>Wreaths on the doors. Garland running along the mantel and up the stair railing. A full Christmas tree, decorated to match everything else in the room. Every piece comes with lights already built in, so the whole space is warm the second the sun goes down.</p>
+          <p>Outside, the entryway gets the same treatment: a wreath on the front door and greenery garland running up the columns and along the portico, lit end to end.</p>
+          <ul class="svc-bul">
+            <li><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg><span><b>Wreaths for front doors, interior doors, and entryways</b>, sized to the opening</span></li>
+            <li><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg><span><b>Garland for mantels, stair railings, archways, and doorframes</b> &mdash; the indoor version comes with ornaments and beading worked into the greenery</span></li>
+            <li><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg><span><b>Exterior greenery garland</b> for columns, porticos, and entryways &mdash; plain green foliage, built to sit outside all season</span></li>
+            <li><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg><span><b>Fully decorated Christmas trees</b>, styled to match the rest of the room</span></li>
+            <li><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg><span><b>Lights built into every piece</b> &mdash; wreaths, garland, and trees arrive pre-lit, no separate strands to run</span></li>
+            <li><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg><span><b>Three color combinations to choose from:</b> Gold and Silver, Red and Gold, or Blue and Silver</span></li>
+          </ul>
+          <dl class="svc-ideal"><dt>Ideal for</dt><dd>Residential, commercial and municipals</dd></dl>
+
+          <!-- Galeria de 3 slots (fotos de interior pendentes) -->
+          <ul class="igal" aria-label="Interior Christmas decor gallery">
+            <li class="igal-item g1">
+              <img data-interior-img data-src="assets/interiors/interior-wreath.jpg" alt="Lit Christmas wreath with gold and silver ornaments hanging on a front door">
+              <span class="igal-cap">Wreaths</span>
+            </li>
+            <li class="igal-item g2">
+              <img data-interior-img data-src="assets/interiors/interior-garland-mantel.jpg" alt="Pre-lit Christmas garland with ornaments draped across a fireplace mantel">
+              <span class="igal-cap">Mantel garland</span>
+            </li>
+            <li class="igal-item g3">
+              <img data-interior-img data-src="assets/interiors/interior-tree.jpg" alt="Fully decorated Christmas tree with matching ribbon, ornaments, and built-in lights">
+              <span class="igal-cap">Decorated trees</span>
+            </li>
+          </ul>
+          <p class="igal-note"><span class="ph-tag">Preview</span><span class="tc">[TO CONFIRM] placeholder photo</span></p>
+
+          <!-- Sub-bloco: as 3 combinacoes de cor (nomes exatos do cliente) -->
+          <div class="pal">
+            <h4 class="pal-h">Pick your palette</h4>
+            <p class="pal-lead">Three combinations, each one designed as a complete set &mdash; wreaths, garland, and tree all speaking the same language. Every option comes lit.</p>
+            <ul class="pal-grid">
+              <li class="pal-card">
+                <span class="pal-sw sw-gs" aria-hidden="true"></span>
+                <span class="pal-name">Gold and Silver</span>
+                <span class="pal-desc">Soft metallics and warm light. The one that reads elegant in any room.</span>
+              </li>
+              <li class="pal-card">
+                <span class="pal-sw sw-rg" aria-hidden="true"></span>
+                <span class="pal-name">Red and Gold</span>
+                <span class="pal-desc">Traditional Christmas, done properly. Deep red, warm gold, classic every year.</span>
+              </li>
+              <li class="pal-card">
+                <span class="pal-sw sw-bs" aria-hidden="true"></span>
+                <span class="pal-name">Blue and Silver</span>
+                <span class="pal-desc">Cool blues and bright silver, for a crisp winter look with a modern edge.</span>
+              </li>
+            </ul>
+            <p class="pal-micro">Not sure which one fits your space? Send us a photo of the room. We'll tell you what we'd do with it.</p>
+          </div>
+
+          <p class="svc-micro">Same crew, same process. We design it, we install it, and we make the inside match the outside.</p>
+          <a href="#quote" class="btn gold">Get Your Free Quote</a>
+        </div>
+      </article>
+
+      <!-- Bloco 3 - Permanente: card CLARO, sem efeito de Natal. Imagem a esquerda (ritmo alternado com 4 cards) -->
+      <article class="svc day sr-hidden">
         <div class="svc-media">
           <img class="svc-img" src="assets/sections/card-permanent.jpg" alt="Home facade and steps lit with warm architectural lighting at night (placeholder - real project photo pending)">
           <div class="svc-scrim" aria-hidden="true"></div>
@@ -1197,8 +1338,8 @@ section{position:relative}
         </div>
       </article>
 
-      <!-- Bloco 3 - Landscape: card CLARO, sem efeito de Natal -->
-      <article class="svc day sr-hidden">
+      <!-- Bloco 4 - Landscape: card CLARO, sem efeito de Natal. INVERTIDO: imagem a direita -->
+      <article class="svc day rev sr-hidden">
         <div class="svc-media">
           <img class="svc-img" src="assets/sections/card-landscape.jpg" alt="Patio with landscape uplighting on palms at dusk (placeholder - real project photo pending)">
           <div class="svc-scrim" aria-hidden="true"></div>
@@ -1243,7 +1384,7 @@ section{position:relative}
         </div>
       </article>
     </div>
-    <p class="tc-note sr-hidden"><b>[TO CONFIRM]</b> All three images above are palette placeholders. Replace with real project photos before publishing &mdash; stock imagery must not be presented as our own work.</p>
+    <p class="tc-note sr-hidden"><b>[TO CONFIRM]</b> All service and gallery images above are palette placeholders. Replace with real project photos before publishing &mdash; stock imagery must not be presented as our own work.</p>
   </div>
 </section>
 
@@ -1369,7 +1510,7 @@ section{position:relative}
     <div class="center maxw sr-hidden">
       <span class="eyebrow">New Client Offer</span>
       <h2 id="offer-h2">Save 10% on your first service</h2>
-      <p class="lead">Book any service with us for the first time and take 10% off. Christmas lighting, permanent lighting, or landscape lighting.</p>
+      <p class="lead">Book any service with us for the first time and take 10% off. Christmas lighting, interior Christmas decor, permanent lighting, or landscape lighting.</p>
     </div>
     <div class="offer-wrap">
       <div class="offer-side sr-hidden">
@@ -1582,6 +1723,14 @@ section{position:relative}
         <div class="faq-ans">Yes, and it's one of the reasons people hire us. We create a design specific to your property and show you a preview of how it will look. You approve it, or ask for changes, before installation day.</div>
       </details>
       <details class="faq-item sr-hidden">
+        <summary>Do you decorate the inside of the house too, or just the outside?<span class="fq-ico" aria-hidden="true"></span></summary>
+        <div class="faq-ans">Both. Along with the exterior lighting, we install wreaths, garland for mantels, railings and doorframes, and fully decorated Christmas trees. Every piece comes pre-lit, and the interior is designed to match what we do outside, so the whole property reads as one look.</div>
+      </details>
+      <details class="faq-item sr-hidden">
+        <summary>What colors can I choose from?<span class="fq-ico" aria-hidden="true"></span></summary>
+        <div class="faq-ans">Three combinations: Gold and Silver, Red and Gold, or Blue and Silver. Each one is put together as a complete set &mdash; wreath, garland, and tree &mdash; so nothing clashes, and every piece comes with lights already built in. Tell us the room and we'll show you which one we'd pick for it.</div>
+      </details>
+      <details class="faq-item sr-hidden">
         <summary>Can I control the permanent lighting from my phone?<span class="fq-ico" aria-hidden="true"></span></summary>
         <div class="faq-ans">Yes. Permanent lighting is controlled from an app on your phone over Wi-Fi or Bluetooth. Warm white for everyday evenings, seasonal colors when you want them, and color changes whenever you feel like it.</div>
       </details>
@@ -1681,6 +1830,7 @@ section{position:relative}
               <select id="f-svc" name="service" required>
                 <option value="">Select an option</option>
                 <option>Christmas &amp; Holiday Lighting (rental)</option>
+                <option>Interior Christmas Decor</option>
                 <option>Permanent Lighting</option>
                 <option>Garden &amp; Landscape Lighting</option>
                 <option>Not sure yet &mdash; help me decide</option>
@@ -1719,6 +1869,7 @@ section{position:relative}
         <h4>Services</h4>
         <ul>
           <li><a href="#services">Christmas &amp; Holiday Lighting (Rental)</a></li>
+          <li><a href="#services">Interior Christmas Decor</a></li>
           <li><a href="#services">Permanent Lighting</a></li>
           <li><a href="#services">Garden &amp; Landscape Lighting</a></li>
         </ul>
@@ -2884,6 +3035,33 @@ section{position:relative}
       img.src = url;
     });
   });
+
+  /* ---------- FOTOS DO CARD INTERIOR CHRISTMAS DECOR ----------
+     >>> CHAVE UNICA: vire para true quando os 4 JPG estiverem em assets/interiors/
+         (interior-portico, interior-wreath, interior-garland-mantel, interior-tree).
+         Ver assets/interiors/LEIA-ME.md.
+     Com false as <img> ficam SEM src: zero request, zero 404, zero erro de console,
+     e cada slot mostra o gradiente do design system + a legenda + o marcador
+     [TO CONFIRM] placeholder photo. Mesma decisao dos comparadores: NAO ha sondagem
+     do arquivo (fetch HEAD / new Image imprime 404 em vermelho no console). */
+  var INTERIOR_PHOTOS_READY = true;
+
+  if(INTERIOR_PHOTOS_READY){
+    Array.prototype.forEach.call(document.querySelectorAll('img[data-interior-img]'), function(img){
+      var url = img.getAttribute('data-src');
+      if(!url) return;
+      img.addEventListener('load', function(){
+        var host = img.parentNode;
+        if(host) host.classList.add('has-img');
+        var gal = img.closest ? img.closest('.igal') : null;
+        if(gal && !gal.querySelector('.igal-item:not(.has-img)')) gal.classList.add('is-live');
+      });
+      img.addEventListener('error', function(){ /* volta ao placeholder, sem quebrar */ });
+      img.setAttribute('loading','lazy');
+      img.setAttribute('decoding','async');
+      img.src = url;
+    });
+  }
 
   /* ---------- menu mobile ---------- */
   var burger = document.getElementById('burger'), nav = document.getElementById('nav');
