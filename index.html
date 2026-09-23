@@ -2249,7 +2249,7 @@ section{position:relative}
   var reduce = false;
   try{ reduce = matchMedia('(prefers-reduced-motion: reduce)').matches; }catch(err){}
 
-  /* desktop (>=1025px) usa frames 1600px q60 (HD); mobile usa 1280px (leve).
+  /* desktop (>=1025px) usa frames 1920px q80 (qualidade maxima do video-fonte); mobile usa 1280px (leve).
      Se um frame HD falhar, cai pro mobile sem quebrar a sequencia. */
   var HI = false;
   try{ HI = matchMedia('(min-width: 1025px)').matches; }catch(err){}
@@ -2276,7 +2276,7 @@ section{position:relative}
     if(r.width < 2 || r.height < 2) return false;
     var dpr = Math.min(window.devicePixelRatio || 1, 2);
     var w = Math.round(r.width * dpr), h = Math.round(r.height * dpr);
-    var cap = HI ? 1600 : 1280;
+    var cap = HI ? 1920 : 1280;
     if(w > cap){ h = Math.round(h * cap / w); w = cap; }
     if(canvas.width !== w || canvas.height !== h){
       canvas.width = w; canvas.height = h;
