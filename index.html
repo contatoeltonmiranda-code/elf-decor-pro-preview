@@ -291,8 +291,8 @@ section{position:relative}
 .burger[aria-expanded="true"] span:nth-child(3){transform:translateY(-7px) rotate(-45deg)}
 
 /* ===== HERO ===== */
-.hero-pin{height:calc(100vh + 115vh)}
-.hero{position:sticky;top:0;height:100vh;display:flex;flex-direction:column;padding:96px 0 0;background:radial-gradient(ellipse 90% 70% at 70% 20%,#1B2E18 0%,#0E1A0B 64%);overflow:hidden;isolation:isolate}
+.hero-pin{height:calc(100vh + 115vh);position:relative;z-index:40}
+.hero{position:sticky;top:0;height:100vh;display:flex;flex-direction:column;padding:96px 0 0;background:radial-gradient(ellipse 90% 70% at 70% 20%,#1B2E18 0%,#0E1A0B 64%);overflow-x:clip;overflow-y:visible;isolation:isolate}
 .hero>.wrap{margin:auto;flex:1 1 auto;display:flex;align-items:center}
 /* tablet/mobile: sem pin (conteudo empila) — animacao corre no scroll normal do hero */
 @media(max-width:1024px){.hero-pin{height:auto}
@@ -334,7 +334,7 @@ section{position:relative}
 /* ===== MARQUEE X DUPLO ===== */
 /* fundo escuro no wrapper: sem isto, entre a trust bar e o problema (ambos noturnos) sobrava
    um filete claro do body (cream) atras das barras rotacionadas - a "linha branca" reportada */
-.marquee{background:var(--night2);height:152px;overflow-x:clip;overflow-y:visible;position:relative;z-index:40;margin-top:-70px;margin-bottom:-70px}
+.marquee{background:transparent;height:152px;overflow:visible;position:absolute;left:0;right:0;bottom:-76px;z-index:40;margin:0;pointer-events:none}
 /* barras mais espessas (era padding 12px) */
 .marquee-bar{position:absolute;left:50%;top:50%;width:150%;overflow:hidden;white-space:nowrap;padding:22px 0;box-shadow:0 8px 26px rgba(0,0,0,.35)}
 .marquee-bar.back{background:var(--forest);transform:translate(-50%,-50%) rotate(-3.2deg);z-index:1}
@@ -910,7 +910,7 @@ section{position:relative}
   .hero .pretitle{display:block;border-radius:14px;padding:10px 14px;line-height:1.6}
   .hero .pretitle svg{display:inline-block;vertical-align:-3px;margin-right:6px}
   .hero .pretitle .tc{display:inline;white-space:normal}
-  .marquee{height:128px;margin-top:-62px;margin-bottom:-62px}
+  .marquee{height:128px;bottom:-64px}
   .marquee-bar{width:270%;padding:16px 0}
   .marquee-bar.back{transform:translate(-50%,-50%) rotate(-8deg)}
   .marquee-bar.front{transform:translate(-50%,-50%) rotate(8deg)}
@@ -1061,15 +1061,14 @@ section{position:relative}
     <p class="tc-note sr-hidden"><b>[TO CONFIRM]</b> If the company is licensed and insured, add a 5th trust item: "Licensed and insured." Do not publish without confirmation.</p>
   </div>
 </section>
-</section>
-</div>
-
-
-<!-- ============ MARQUEE X DUPLO ============ -->
-<div class="marquee" aria-hidden="true">
+<!-- marquee agora DENTRO do hero (ronda 5f): sobreposto na fronteira hero x problema -->
+  <div class="marquee" aria-hidden="true">
   <div class="marquee-bar back"><span class="mq-twinkle tl"></span><span class="mq-twinkle br"></span><div class="marquee-track" data-mq="design &middot; install &middot; maintain &middot; take down &middot; store"></div></div>
   <div class="marquee-bar front"><span class="mq-twinkle tl"></span><span class="mq-twinkle br"></span><div class="marquee-track" data-mq="christmas lighting &middot; interior christmas decor &middot; permanent lighting &middot; landscape lighting &middot; full service"></div></div>
 </div>
+</section>
+</div>
+
 
 <!-- ============ 2. PROBLEMA (fase NATAL: neve sutil) ============ -->
 <section class="sec sec-problem on-dark" aria-labelledby="problem-h2">
