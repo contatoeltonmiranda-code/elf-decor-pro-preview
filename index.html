@@ -55,7 +55,7 @@
 @keyframes circSpin{to{transform:rotate(360deg)}}
 @keyframes sealSpin{to{transform:rotate(360deg)}}
 html{scroll-behavior:smooth}
-body{font-family:'Montserrat',sans-serif;color:var(--ink);background:var(--cream);line-height:1.6;overflow-x:hidden;-webkit-font-smoothing:antialiased}
+body{font-family:'Montserrat',sans-serif;color:var(--ink);background:var(--cream);line-height:1.6;overflow-x:hidden;overflow-x:clip;-webkit-font-smoothing:antialiased}
 h1,h2,.display{font-family:'Cinzel Decorative','Cinzel',serif;font-weight:700;line-height:1.14;letter-spacing:.4px}
 h3,h4,.serif{font-family:'Cinzel',serif;font-weight:600;line-height:1.22;letter-spacing:.3px}
 img{max-width:100%;display:block}
@@ -291,8 +291,14 @@ section{position:relative}
 .burger[aria-expanded="true"] span:nth-child(3){transform:translateY(-7px) rotate(-45deg)}
 
 /* ===== HERO ===== */
-.hero{padding:84px 0 108px;background:radial-gradient(ellipse 90% 70% at 70% 20%,#1B2E18 0%,#0E1A0B 64%);overflow:hidden;isolation:isolate}
-.hero-grid{display:grid;grid-template-columns:1.08fr;gap:52px;align-items:center;position:relative;z-index:3}
+.hero-pin{height:calc(100vh + 115vh)}
+.hero{position:sticky;top:0;height:100vh;display:flex;flex-direction:column;padding:96px 0 0;background:radial-gradient(ellipse 90% 70% at 70% 20%,#1B2E18 0%,#0E1A0B 64%);overflow:hidden;isolation:isolate}
+.hero>.wrap{margin:auto 0;flex:1 1 auto;display:flex;align-items:center}
+/* tablet/mobile: sem pin (conteudo empila) — animacao corre no scroll normal do hero */
+@media(max-width:1024px){.hero-pin{height:auto}
+  .hero{position:static;height:auto;min-height:0;padding:84px 0 78px}
+  .hero>.wrap{display:block;margin:0}}
+.hero-grid{display:grid;grid-template-columns:1.08fr .92fr;gap:52px;align-items:center;position:relative;z-index:3}
 .hero-grid>*,.proc-split>*,.quote-grid>*,.guar-split>*,.about-split>*,.offer-wrap>*,.svc>*{min-width:0}
 .hero .pretitle{display:inline-flex;align-items:center;gap:9px;font-family:'Cinzel',serif;font-size:11.5px;font-weight:600;letter-spacing:1.1px;text-transform:uppercase;color:var(--glow);border:1px solid var(--linha);border-radius:50px;padding:8px 16px;margin-bottom:20px;line-height:1.5;max-width:max-content}
 .hero .pretitle svg{width:15px;height:15px;stroke:var(--glow);stroke-width:2;fill:none;flex-shrink:0}
@@ -314,7 +320,7 @@ section{position:relative}
              linear-gradient(180deg,rgba(14,26,11,.30) 0%,transparent 22%,transparent 62%,rgba(14,26,11,.55) 100%)}
 
 /* ===== TRUST BAR (divisorias verticais gradient - ref: KETOX .bs-item) ===== */
-.trust{background:linear-gradient(180deg,#0E1A0B 0%,#132312 100%);padding:52px 0 50px;overflow:hidden}
+.trust{background:transparent;padding:36px 0 34px;overflow:hidden;margin-top:auto;position:relative;z-index:3}
 .trust-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:26px 0;position:relative;z-index:2}
 .trust-item{position:relative;text-align:center;padding:6px 22px}
 .trust-item:not(:nth-child(4n+1))::before{content:"";position:absolute;left:0;top:8%;height:84%;width:1px;background:linear-gradient(to bottom,transparent,rgba(255,206,123,.4) 22%,rgba(255,206,123,.4) 78%,transparent)}
@@ -998,6 +1004,7 @@ section{position:relative}
 <span id="top"></span>
 
 <!-- ============ 1. HERO (fase NATAL: neve + bokeh + cordao + estrelas) ============ -->
+<div class="hero-pin">
 <section class="hero" aria-labelledby="hero-h1">
   <span class="orb tl" aria-hidden="true"></span>
   <span class="orb br" aria-hidden="true"></span>
@@ -1027,14 +1034,11 @@ section{position:relative}
         </div>
         <p class="micro">Free quote. No obligation. Most projects are scheduled within days of approval. <span class="tc">[TO CONFIRM: exact timeframe]</span></p>
       </div>
-      </div>
     </div>
   </div>
-</section>
 
-<!-- ============ TRUST BAR ============ -->
-<section class="trust" aria-label="Why clients trust us">
-  <div class="lights bottom" aria-hidden="true" data-lights="1"></div>
+<!-- trust bar agora DENTRO do hero (ronda 5e): parte da 1a secao -->
+  <section class="trust" aria-label="Why clients trust us">
   <div class="wrap">
     <div class="trust-grid">
       <div class="trust-item sr-hidden">
@@ -1057,6 +1061,9 @@ section{position:relative}
     <p class="tc-note sr-hidden"><b>[TO CONFIRM]</b> If the company is licensed and insured, add a 5th trust item: "Licensed and insured." Do not publish without confirmation.</p>
   </div>
 </section>
+</section>
+</div>
+
 
 <!-- ============ MARQUEE X DUPLO ============ -->
 <div class="marquee" aria-hidden="true">
@@ -2285,12 +2292,18 @@ section{position:relative}
   }
 
   /* --- progress do hero no scroll (clamp 0-1) --- */
+  var pin = hero.parentElement; /* .hero-pin: distancia de scroll enquanto o hero fica preso */
   function progress(){
-    var r = hero.getBoundingClientRect();
-    if(r.top >= 0) return 0;
-    if(r.height <= 0) return 0;
-    var p = (-r.top) / r.height; /* base sai da viewport <=> r.top <= -height */
-    return Math.max(0, Math.min(1, p));
+    var vh = window.innerHeight || document.documentElement.clientHeight;
+    var r = pin.getBoundingClientRect();
+    var dist = r.height - vh;
+    if(dist > 4){ /* pinned: anima enquanto o hero fica preso; so libera a pagina em 100% */
+      if(r.top >= 0) return 0;
+      return Math.max(0, Math.min(1, -r.top / dist));
+    }
+    var h = hero.getBoundingClientRect(); /* fallback (sem pin) */
+    if(h.top >= 0 || h.height <= 0) return 0;
+    return Math.max(0, Math.min(1, (-h.top) / h.height));
   }
 
   /* --- desenha o frame do progress; fallback pro carregado mais proximo --- */
