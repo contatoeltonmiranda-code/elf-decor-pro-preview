@@ -308,6 +308,20 @@ section{position:relative}
 .hero-glow{position:absolute;inset:-70px;border-radius:50%;background:radial-gradient(circle at 50% 46%,rgba(255,206,123,.24),rgba(194,110,96,.08) 45%,transparent 70%);z-index:0;animation:orbBreath 5s ease-in-out infinite;pointer-events:none}
 @media(prefers-reduced-motion:reduce){.hero-glow{animation:none}}
 
+/* ===== HERO SCROLL SCRUB (ronda 5c: frames do video Veo 3 desenhados por scroll) =====
+   Stage ocupa o slot do antigo 3D: bleed controlado (hero tem overflow:hidden -> zero
+   overflow-x) + feather de mask (mesma tecnica do v11) funde o frame no fundo noturno.
+   O <img> poster e o fallback E o primeiro paint: se o JS nao roda, a still v2 aparece. */
+.hero-scroll-stage{position:relative;width:112%;margin:-6% -6%;aspect-ratio:16/9;z-index:2;
+  -webkit-mask-image:linear-gradient(90deg,transparent 0,#000 18%,#000 82%,transparent 100%),linear-gradient(180deg,transparent 0,#000 10%,#000 88%,transparent 100%);
+  -webkit-mask-composite:source-in;
+  mask-image:linear-gradient(90deg,transparent 0,#000 18%,#000 82%,transparent 100%),linear-gradient(180deg,transparent 0,#000 10%,#000 88%,transparent 100%);
+  mask-composite:intersect}
+.hero-scroll-poster,.hero-scroll-canvas{position:absolute;inset:0;width:100%;height:100%;display:block}
+.hero-scroll-poster{object-fit:cover}
+/* mobile: sem bleed (mesma regra do 3D), levemente mais alto com crop central (cover) */
+@media(max-width:960px){.hero-scroll-stage{width:100%;margin:0;aspect-ratio:16/10}}
+
 /* ===== TRUST BAR (divisorias verticais gradient - ref: KETOX .bs-item) ===== */
 .trust{background:linear-gradient(180deg,#0E1A0B 0%,#132312 100%);padding:52px 0 50px;overflow:hidden}
 .trust-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:26px 0;position:relative;z-index:2}
@@ -1019,7 +1033,12 @@ section{position:relative}
         </div>
         <p class="micro">Free quote. No obligation. Most projects are scheduled within days of approval. <span class="tc">[TO CONFIRM: exact timeframe]</span></p>
       </div>
-      <div class="hero-visual sr-hidden" aria-hidden="true"><!-- coluna vazia: animacao de scroll em breve --></div>
+      <div class="hero-visual sr-hidden" aria-hidden="true">
+        <div class="hero-scroll-stage">
+          <img class="hero-scroll-poster" src="assets/hero-scroll/hero-still-v2.jpg" alt="" width="1600" height="900" fetchpriority="high">
+          <canvas id="heroScrollCanvas" class="hero-scroll-canvas"></canvas>
+        </div>
+      </div>
       </div>
     </div>
   </div>
@@ -2210,6 +2229,128 @@ section{position:relative}
       });
     });
   }
+})();
+</script>
+
+<script>
+/* ===== HERO SCROLL SCRUB (ronda 5c) =====
+   96 frames WebP (video Veo 3) desenhados em canvas conforme o scroll do hero.
+   progress 0 = topo do hero no topo da viewport | 1 = base do hero sai da viewport.
+   Preload progressivo (24 primeiros na hora, resto em idle). Frame nao carregado =
+   desenha o carregado mais proximo (nunca tela vazia). Sem JS/canvas: poster <img>
+   continua visivel atras do canvas. prefers-reduced-motion: frame final estatico. */
+(function(){
+  var visual = document.querySelector('.hero-visual');
+  var stage = document.querySelector('.hero-scroll-stage');
+  var canvas = document.getElementById('heroScrollCanvas');
+  var hero = document.querySelector('.hero');
+  if(!visual || !stage || !canvas || !hero) return;
+  var ctx = null;
+  try{ ctx = canvas.getContext('2d'); }catch(err){ ctx = null; }
+  if(!ctx) return; /* canvas falhou: poster estatico segue no lugar */
+
+  var N = 96;
+  var frames = new Array(N).fill(null);
+  var loadedAny = false;
+  var painted = -1;      /* ultimo indice pintado */
+  var reduce = false;
+  try{ reduce = matchMedia('(prefers-reduced-motion: reduce)').matches; }catch(err){}
+
+  function srcFor(i){
+    var n = String(i + 1);
+    while(n.length < 3) n = '0' + n;
+    return 'assets/hero-scroll/frames/frame_' + n + '.webp';
+  }
+
+  function load(i, cb){
+    if(frames[i]){ if(cb) cb(i); return; }
+    var im = new Image();
+    im.onload = function(){ frames[i] = im; if(cb) cb(i); };
+    im.onerror = function(){ if(cb) cb(i); };
+    im.src = srcFor(i);
+  }
+
+  /* --- canvas do tamanho real do stage (cap ~1280px de largura, dpr cap 2) --- */
+  function sizeCanvas(){
+    var r = stage.getBoundingClientRect();
+    if(r.width < 2 || r.height < 2) return false;
+    var dpr = Math.min(window.devicePixelRatio || 1, 2);
+    var w = Math.round(r.width * dpr), h = Math.round(r.height * dpr);
+    var cap = 1280;
+    if(w > cap){ h = Math.round(h * cap / w); w = cap; }
+    if(canvas.width !== w || canvas.height !== h){
+      canvas.width = w; canvas.height = h;
+      painted = -1; /* forca repintura no novo tamanho */
+    }
+    return true;
+  }
+
+  /* --- drawImage em modo cover (crop central) para preencher o stage --- */
+  function paint(im){
+    var W = canvas.width, H = canvas.height;
+    var iw = im.naturalWidth, ih = im.naturalHeight;
+    if(!iw || !ih) return;
+    var s = Math.max(W / iw, H / ih);
+    var sw = W / s, sh = H / s;
+    ctx.clearRect(0, 0, W, H);
+    ctx.drawImage(im, (iw - sw) / 2, (ih - sh) / 2, sw, sh, 0, 0, W, H);
+    loadedAny = true;
+  }
+
+  /* --- progress do hero no scroll (clamp 0-1) --- */
+  function progress(){
+    var r = hero.getBoundingClientRect();
+    if(r.top >= 0) return 0;
+    if(r.height <= 0) return 0;
+    var p = (-r.top) / r.height; /* base sai da viewport <=> r.top <= -height */
+    return Math.max(0, Math.min(1, p));
+  }
+
+  /* --- desenha o frame do progress; fallback pro carregado mais proximo --- */
+  function draw(){
+    if(!sizeCanvas()) return;
+    var p = reduce ? 1 : progress();
+    var want = Math.max(0, Math.min(N - 1, Math.round(p * (N - 1))));
+    var im = frames[want];
+    var idx = want;
+    if(!im){
+      for(var d = 1; d < N; d++){
+        if(want - d >= 0 && frames[want - d]){ idx = want - d; im = frames[idx]; break; }
+        if(want + d < N && frames[want + d]){ idx = want + d; im = frames[idx]; break; }
+      }
+    }
+    if(!im) return; /* poster cobre ate o 1o frame chegar */
+    if(idx === painted) return; /* so redesenha quando o frame desenhado muda */
+    paint(im);
+    painted = idx;
+  }
+
+  /* --- preload progressivo: 0 imediato, 24 primeiros na hora, resto em idle --- */
+  load(0, function(){ draw(); });
+  for(var i = 1; i < 24; i++) load(i, function(){ draw(); });
+  var next = 24;
+  function pump(){
+    var budget = 4;
+    while(budget-- > 0 && next < N){ load(next, function(){ draw(); }); next++; }
+    if(next < N){
+      if('requestIdleCallback' in window) requestIdleCallback(pump, {timeout: 1500});
+      else setTimeout(pump, 150);
+    }
+  }
+  pump();
+
+  /* --- scroll passivo com rAF throttle; resize repinta --- */
+  if(!reduce){
+    var ticking = false;
+    window.addEventListener('scroll', function(){
+      if(ticking) return;
+      ticking = true;
+      requestAnimationFrame(function(){ ticking = false; draw(); });
+    }, {passive: true});
+  }
+  window.addEventListener('resize', function(){ draw(); });
+  if(document.readyState === 'complete') draw();
+  else window.addEventListener('load', function(){ draw(); });
 })();
 </script>
 </body>
