@@ -317,8 +317,11 @@ section{position:relative}
 @media(max-width:1024px){.hero-scroll-poster{object-position:72% center}}
 /* scrim: legibilidade da copy a esquerda + assentamento na base da section */
 .hero-scroll-stage::after{content:"";position:absolute;inset:0;
-  background:linear-gradient(90deg,rgba(14,26,11,.80) 0%,rgba(14,26,11,.42) 40%,rgba(14,26,11,.05) 64%,rgba(14,26,11,.12) 100%),
+  background:linear-gradient(90deg,rgba(14,26,11,.95) 0%,rgba(14,26,11,.88) 18%,rgba(14,26,11,.76) 34%,rgba(14,26,11,.54) 48%,rgba(14,26,11,.12) 66%,rgba(14,26,11,.04) 78%,rgba(14,26,11,.08) 100%),
              linear-gradient(180deg,rgba(14,26,11,.30) 0%,transparent 22%,transparent 62%,rgba(14,26,11,.55) 100%)}
+@media(max-width:767px){.hero-scroll-stage::after{
+  background:linear-gradient(90deg,rgba(14,26,11,.9) 0%,rgba(14,26,11,.74) 55%,rgba(14,26,11,.48) 100%),
+             linear-gradient(180deg,rgba(14,26,11,.3) 0%,transparent 22%,transparent 62%,rgba(14,26,11,.55) 100%)}}
 
 /* ===== TRUST BAR (divisorias verticais gradient - ref: KETOX .bs-item) ===== */
 .trust{background:transparent;padding:36px 0 34px;overflow:hidden;margin-top:auto;position:relative;z-index:3}
