@@ -313,7 +313,8 @@ section{position:relative}
    O <img> poster e o fallback E o primeiro paint: se o JS nao roda, a still v2 aparece. */
 .hero-scroll-stage{position:absolute;inset:0;z-index:0;pointer-events:none}
 .hero-scroll-poster,.hero-scroll-canvas{position:absolute;inset:0;width:100%;height:100%;display:block}
-.hero-scroll-poster{object-fit:cover}
+.hero-scroll-poster{object-fit:cover;object-position:right center}
+@media(max-width:1024px){.hero-scroll-poster{object-position:72% center}}
 /* scrim: legibilidade da copy a esquerda + assentamento na base da section */
 .hero-scroll-stage::after{content:"";position:absolute;inset:0;
   background:linear-gradient(90deg,rgba(14,26,11,.80) 0%,rgba(14,26,11,.42) 40%,rgba(14,26,11,.05) 64%,rgba(14,26,11,.12) 100%),
@@ -1016,7 +1017,7 @@ section{position:relative}
   <span class="bokeh b4" aria-hidden="true"></span>
   <div class="lights top" aria-hidden="true" data-lights="1"></div>
       <div class="hero-scroll-stage" aria-hidden="true">
-        <img class="hero-scroll-poster" src="assets/hero-scroll/hero-still-v2.jpg" alt="" width="1600" height="900" fetchpriority="high">
+        <img class="hero-scroll-poster" src="assets/hero-scroll/hero-client-poster-v2.jpg" alt="" width="1920" height="816" fetchpriority="high">
         <canvas id="heroScrollCanvas" class="hero-scroll-canvas"></canvas>
       </div>
   <div class="wrap">
@@ -2249,14 +2250,14 @@ section{position:relative}
   var reduce = false;
   try{ reduce = matchMedia('(prefers-reduced-motion: reduce)').matches; }catch(err){}
 
-  /* desktop (>=1025px) usa frames 1920px q80 (qualidade maxima do video-fonte); mobile usa 1280px (leve).
+  /* desktop (>=1025px) usa frames 1920px q80 do video do cliente; mobile usa 1280px (leve).
      Se um frame HD falhar, cai pro mobile sem quebrar a sequencia. */
   var HI = false;
   try{ HI = matchMedia('(min-width: 1025px)').matches; }catch(err){}
   function srcFor(i, mob){
     var n = String(i + 1);
     while(n.length < 3) n = '0' + n;
-    return 'assets/hero-scroll/frames' + (mob || !HI ? '-mob' : '') + '/frame_' + n + '.webp';
+    return 'assets/hero-scroll/frames-client' + (mob || !HI ? '-mob' : '') + '-v2/frame_' + n + '.webp';
   }
 
   function load(i, cb, mob){
@@ -2285,7 +2286,7 @@ section{position:relative}
     return true;
   }
 
-  /* --- drawImage em modo cover (crop central) para preencher o stage --- */
+  /* --- drawImage em modo cover: enquadra a casa a direita no panorama 21:9 --- */
   function paint(im){
     var W = canvas.width, H = canvas.height;
     var iw = im.naturalWidth, ih = im.naturalHeight;
@@ -2293,7 +2294,7 @@ section{position:relative}
     var s = Math.max(W / iw, H / ih);
     var sw = W / s, sh = H / s;
     ctx.clearRect(0, 0, W, H);
-    ctx.drawImage(im, (iw - sw) / 2, (ih - sh) / 2, sw, sh, 0, 0, W, H);
+    ctx.drawImage(im, Math.max(0, iw - sw) * (HI ? 1 : .72), (ih - sh) / 2, sw, sh, 0, 0, W, H);
     loadedAny = true;
   }
 
@@ -2361,4 +2362,3 @@ section{position:relative}
 </script>
 </body>
 </html>
-
