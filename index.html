@@ -310,7 +310,7 @@ section{position:relative}
 /* ===== HERO SCROLL SCRUB (ronda 5c: frames do video Veo 3 desenhados por scroll) =====
    Stage ocupa o slot do antigo 3D: bleed controlado (hero tem overflow:hidden -> zero
    overflow-x) + feather de mask (mesma tecnica do v11) funde o frame no fundo noturno.
-   O <img> poster e o fallback E o primeiro paint: se o JS nao roda, a still v2 aparece. */
+   O <img> poster e o fallback E o primeiro paint: se o JS nao roda, a still v3 aparece. */
 .hero-scroll-stage{position:absolute;inset:0;z-index:0;pointer-events:none}
 .hero-scroll-poster,.hero-scroll-canvas{position:absolute;inset:0;width:100%;height:100%;display:block}
 .hero-scroll-poster{object-fit:cover;object-position:right center}
@@ -1020,7 +1020,7 @@ section{position:relative}
   <span class="bokeh b4" aria-hidden="true"></span>
   <div class="lights top" aria-hidden="true" data-lights="1"></div>
       <div class="hero-scroll-stage" aria-hidden="true">
-        <img class="hero-scroll-poster" src="assets/hero-scroll/hero-client-poster-v2.jpg" alt="" width="1920" height="816" fetchpriority="high">
+        <img class="hero-scroll-poster" src="assets/hero-scroll/hero-client-poster-v3.jpg" alt="" width="1920" height="816" fetchpriority="high">
         <canvas id="heroScrollCanvas" class="hero-scroll-canvas"></canvas>
       </div>
   <div class="wrap">
@@ -2253,14 +2253,14 @@ section{position:relative}
   var reduce = false;
   try{ reduce = matchMedia('(prefers-reduced-motion: reduce)').matches; }catch(err){}
 
-  /* desktop (>=1025px) usa frames 1920px q80 do video do cliente; mobile usa 1280px (leve).
+  /* desktop (>=1025px) usa frames 1920px q80 do zoom do cliente; mobile usa 1280px (leve).
      Se um frame HD falhar, cai pro mobile sem quebrar a sequencia. */
   var HI = false;
   try{ HI = matchMedia('(min-width: 1025px)').matches; }catch(err){}
   function srcFor(i, mob){
     var n = String(i + 1);
     while(n.length < 3) n = '0' + n;
-    return 'assets/hero-scroll/frames-client' + (mob || !HI ? '-mob' : '') + '-v2/frame_' + n + '.webp';
+    return 'assets/hero-scroll/frames-client' + (mob || !HI ? '-mob' : '') + '-v3/frame_' + n + '.webp';
   }
 
   function load(i, cb, mob){
