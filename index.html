@@ -138,19 +138,6 @@ section{position:relative}
 .hero .micro,.sec-quote .micro,.form-card .micro,.hero .cta-seals{color:var(--on-dark2)}
 .sec-quote .cta-seals span::before{color:var(--glow)}
 
-/* ===== MARCADOR [TO CONFIRM] - destaque sutil, NUNCA remover sem confirmacao ===== */
-.tc{background:rgba(194,110,96,.18);border-bottom:1.5px dotted var(--terra-dk);color:inherit;padding:1px 5px;border-radius:4px;font-weight:600;white-space:nowrap;overflow-wrap:anywhere}
-/* abaixo de 900px o nowrap dos marcadores longos estoura o min-content da coluna
-   e cria scroll horizontal - a partir daqui eles quebram linha */
-@media(max-width:900px){.tc{white-space:normal}}
-.tc.w{white-space:normal}
-.on-dark .tc,.sec--dusk .tc,.sec--wine .tc,.sec--forest .tc{background:rgba(255,206,123,.2);border-bottom-color:var(--glow);color:#FFE7C2}
-.sec--sage .tc{background:rgba(151,27,47,.12);border-bottom-color:var(--wine)}
-.tc-note{display:block;max-width:820px;margin:22px auto 0;background:rgba(194,110,96,.1);border:1px dashed rgba(168,84,64,.55);border-left:3px solid var(--terra-dk);border-radius:10px;padding:14px 18px;font-size:12.5px;line-height:1.6;color:var(--ink2);font-style:italic}
-.tc-note b{font-style:normal;color:var(--terra-dk);letter-spacing:.4px}
-.on-dark .tc-note,.sec--dusk .tc-note,.sec--wine .tc-note{background:rgba(255,206,123,.08);border-color:rgba(255,206,123,.45);border-left-color:var(--glow);color:var(--on-dark2)}
-.on-dark .tc-note b,.sec--dusk .tc-note b,.sec--wine .tc-note b{color:var(--glow)}
-
 /* ===== PLACEHOLDERS DE IMAGEM (gradiente da paleta + alt real) =====
    Trocar por foto real: substituir a div.ph inteira por
    <img class="{mesma-classe}" src="..." alt="{o texto exibido em .ph-alt}"> */
@@ -167,10 +154,7 @@ section{position:relative}
 .ph .ph-alt{font-size:12.5px;max-width:34ch;text-shadow:0 1px 6px rgba(0,0,0,.55)}
 .ph .ph-dim{display:block;margin-top:8px;font-size:10px;font-weight:500;letter-spacing:.6px;opacity:.8}
 
-/* ===== FOTO DE FUNDO DA SECAO (placeholder tematico) - centro limpo via mascara radial =====
-   [TO CONFIRM] imagens de fundo sao placeholders do moodboard; trocar por foto real do projeto.
-   mascara radial: transparente no centro (imagem some -> conteudo legivel), opaca nas bordas
-   (imagem aparece). Assim as quinas mostram a cena e o miolo fica protegido. */
+
 .sec-photobg{position:absolute;inset:0;z-index:1;pointer-events:none;background-size:cover;background-position:center;
   -webkit-mask:radial-gradient(ellipse 66% 60% at 50% 50%,transparent 22%,rgba(0,0,0,.55) 55%,#000 82%);
   mask:radial-gradient(ellipse 66% 60% at 50% 50%,transparent 22%,rgba(0,0,0,.55) 55%,#000 82%)}
@@ -195,7 +179,6 @@ section{position:relative}
 .svc-media .svc-scrim{position:absolute;inset:0;z-index:1;pointer-events:none;background:linear-gradient(180deg,rgba(14,26,11,.04) 0%,rgba(14,26,11,.1) 42%,rgba(14,26,11,.62) 100%)}
 .svc-media-label{position:absolute;left:0;right:0;bottom:0;z-index:4;padding:14px 16px;display:flex;flex-wrap:wrap;align-items:center;gap:8px}
 .svc-media-label .ph-tag{font-family:'Cinzel',serif;font-size:10px;font-weight:700;letter-spacing:1.6px;text-transform:uppercase;color:#FFF7EC;background:rgba(14,26,11,.6);border:1px solid rgba(255,206,123,.45);padding:5px 12px;border-radius:50px;text-shadow:0 1px 4px rgba(0,0,0,.6)}
-.svc-media-label .tc{font-size:10.5px;color:#FFE7C2;background:rgba(14,26,11,.62);border-bottom-color:var(--glow);text-shadow:0 1px 3px rgba(0,0,0,.5)}
 
 /* ===== SCROLL REVEAL ===== */
 .sr-hidden{opacity:0;transform:translateY(24px);transition:opacity .6s ease,transform .6s ease}
@@ -203,6 +186,7 @@ section{position:relative}
 @media(prefers-reduced-motion:reduce){.sr-hidden,.sr-hidden.sr-visible{opacity:1;transform:none;transition:none}html{scroll-behavior:auto}}
 
 /* ===== ORBE RESPIRANDO / BLUR ANIMADO ===== */
+.orb-field{position:absolute;inset:0;overflow:hidden;pointer-events:none;z-index:0}
 .orb{position:absolute;width:520px;height:520px;border-radius:50%;background:radial-gradient(circle,rgba(255,206,123,.16),rgba(194,110,96,.06) 42%,transparent 70%);filter:blur(28px);pointer-events:none;z-index:0;animation:orbBreath 9s ease-in-out infinite}
 .orb.tl{top:-180px;left:-140px}
 .orb.br{bottom:-180px;right:-140px;animation-delay:-4.5s}
@@ -293,14 +277,14 @@ section{position:relative}
 /* ===== HERO ===== */
 .hero-pin{height:calc(100vh + 115vh);position:relative;z-index:40}
 .hero{position:sticky;top:0;height:100vh;display:flex;flex-direction:column;padding:96px 0 0;background:radial-gradient(ellipse 90% 70% at 70% 20%,#1B2E18 0%,#0E1A0B 64%);overflow-x:clip;overflow-y:visible;isolation:isolate}
-.hero>.wrap{margin:auto;flex:1 1 auto;display:flex;align-items:center}
+.hero>.wrap{width:100%;margin:auto;flex:1 1 auto;display:flex;align-items:center}
 /* tablet/mobile: sem pin (conteudo empila) — animacao corre no scroll normal do hero */
 @media(max-width:1024px){.hero-pin{height:auto}
-  .hero{position:static;height:auto;min-height:0;padding:84px 0 78px}
+  .hero{position:static;height:auto;min-height:0;padding:250px 0 78px}
   .hero>.wrap{display:block;margin:0}}
-.hero-grid{display:grid;grid-template-columns:1.08fr .92fr;gap:52px;align-items:center;position:relative;z-index:3}
+.hero-grid{display:grid;grid-template-columns:minmax(0,1.08fr) minmax(0,.92fr);gap:52px;align-items:center;position:relative;z-index:3}
 .hero-grid>*,.proc-split>*,.quote-grid>*,.guar-split>*,.about-split>*,.offer-wrap>*,.svc>*{min-width:0}
-.hero .pretitle{display:inline-flex;align-items:center;gap:9px;font-family:'Cinzel',serif;font-size:11.5px;font-weight:600;letter-spacing:1.1px;text-transform:uppercase;color:var(--glow);border:1px solid var(--linha);border-radius:50px;padding:8px 16px;margin-bottom:20px;line-height:1.5;max-width:max-content}
+.hero .pretitle{display:inline-flex;align-items:center;gap:9px;font-family:'Cinzel',serif;font-size:11.5px;font-weight:600;letter-spacing:1.1px;text-transform:uppercase;color:var(--glow);border:1px solid var(--linha);border-radius:50px;padding:8px 16px;margin-bottom:20px;line-height:1.5;max-width:100%;overflow-wrap:anywhere}
 .hero .pretitle svg{width:15px;height:15px;stroke:var(--glow);stroke-width:2;fill:none;flex-shrink:0}
 .hero h1{font-size:clamp(29px,4vw,52px);margin:0 0 18px;line-height:1.12;color:var(--on-dark)}
 .hero .sub{font-size:clamp(15px,1.2vw,16.5px);max-width:560px;color:var(--on-dark2);margin-bottom:26px}
@@ -314,14 +298,18 @@ section{position:relative}
 .hero-scroll-stage{position:absolute;inset:0;z-index:0;pointer-events:none}
 .hero-scroll-poster,.hero-scroll-canvas{position:absolute;inset:0;width:100%;height:100%;display:block}
 .hero-scroll-poster{object-fit:cover;object-position:right center}
-@media(max-width:1024px){.hero-scroll-poster{object-position:72% center}}
+
 /* scrim: legibilidade da copy a esquerda + assentamento na base da section */
 .hero-scroll-stage::after{content:"";position:absolute;inset:0;
   background:linear-gradient(90deg,rgba(14,26,11,.95) 0%,rgba(14,26,11,.88) 18%,rgba(14,26,11,.76) 34%,rgba(14,26,11,.54) 48%,rgba(14,26,11,.12) 66%,rgba(14,26,11,.04) 78%,rgba(14,26,11,.08) 100%),
              linear-gradient(180deg,rgba(14,26,11,.30) 0%,transparent 22%,transparent 62%,rgba(14,26,11,.55) 100%)}
-@media(max-width:767px){.hero-scroll-stage::after{
-  background:linear-gradient(90deg,rgba(14,26,11,.9) 0%,rgba(14,26,11,.74) 55%,rgba(14,26,11,.48) 100%),
-             linear-gradient(180deg,rgba(14,26,11,.3) 0%,transparent 22%,transparent 62%,rgba(14,26,11,.55) 100%)}}
+
+
+@media(max-width:1024px){
+  .hero-scroll-stage{bottom:auto;height:250px;overflow:hidden}
+  .hero-scroll-poster{object-position:72% top}
+  .hero-scroll-stage::after{background:linear-gradient(180deg,rgba(14,26,11,.12),transparent 36%,rgba(14,26,11,.15) 68%,#0E1A0B 100%)}
+}
 
 /* ===== TRUST BAR (divisorias verticais gradient - ref: KETOX .bs-item) ===== */
 .trust{background:transparent;padding:36px 0 34px;overflow:hidden;margin-top:auto;position:relative;z-index:3}
@@ -338,7 +326,7 @@ section{position:relative}
 /* ===== MARQUEE X DUPLO ===== */
 /* fundo escuro no wrapper: sem isto, entre a trust bar e o problema (ambos noturnos) sobrava
    um filete claro do body (cream) atras das barras rotacionadas - a "linha branca" reportada */
-.marquee{background:transparent;height:152px;overflow:visible;position:absolute;left:0;right:0;bottom:-76px;z-index:40;margin:0;pointer-events:none}
+.marquee{background:transparent;height:152px;overflow-x:clip;overflow-y:visible;position:absolute;left:0;right:0;bottom:-76px;z-index:40;margin:0;pointer-events:none}
 /* barras mais espessas (era padding 12px) */
 .marquee-bar{position:absolute;left:50%;top:50%;width:150%;overflow:hidden;white-space:nowrap;padding:22px 0;box-shadow:0 8px 26px rgba(0,0,0,.35)}
 .marquee-bar.back{background:var(--forest);transform:translate(-50%,-50%) rotate(-3.2deg);z-index:1}
@@ -464,15 +452,10 @@ section{position:relative}
 /* foto do card ainda inexistente: <img> nasce sem src. Sem esta regra o Chrome
    desenha o ALT TEXT por cima do gradiente (armadilha ja vista nos comparadores). */
 .svc-media .svc-img:not([src]){display:none}
-/* quando a foto chega, o gradiente sai. O marcador [TO CONFIRM] CONTINUA visivel:
-   as fotos de interior sao geradas por IA, igual as dos outros 3 cards de servico,
-   e nao foto real de projeto do cliente. So sai quando o Higgor mandar as dele. */
+
 .svc-media.has-img .ph{display:none}
 
-/* ===== INTERIOR CHRISTMAS DECOR - galeria de 3 slots + paletas =====
-   Mesma logica dos comparadores: as <img> nascem so com data-src. Enquanto
-   INTERIOR_PHOTOS_READY for false, o slot mostra o gradiente do design system
-   + a legenda + o marcador [TO CONFIRM]. Zero request, zero 404. */
+
 .igal{list-style:none;display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:2px 0 10px}
 .igal-item{position:relative;aspect-ratio:4/3;border-radius:12px;overflow:hidden;
   border:1px solid rgba(255,206,123,.42);box-shadow:0 8px 22px rgba(0,0,0,.28)}
@@ -493,7 +476,6 @@ section{position:relative}
 .igal-note{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin:0 0 18px}
 .igal-note .ph-tag{font-family:'Cinzel',serif;font-size:9.5px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;
   color:#FFF7EC;background:rgba(14,26,11,.6);border:1px solid rgba(255,206,123,.45);padding:4px 10px;border-radius:50px}
-.igal-note .tc{font-size:10.5px;color:#FFE7C2;border-bottom-color:var(--glow)}
 
 .pal{margin:4px 0 18px;padding:18px 18px 16px;border-radius:16px;
   background:rgba(14,26,11,.42);border:1px solid rgba(255,206,123,.28)}
@@ -511,12 +493,7 @@ section{position:relative}
 .pal-desc{font-size:12.5px;line-height:1.55;color:var(--on-dark2)}
 .pal-micro{font-size:12.5px;font-style:italic;line-height:1.6;color:var(--glow);margin:0}
 
-/* ===== COMPARADOR ANTES/DEPOIS (arrastar) - Warm White x RGBW =====
-   Vive dentro do .svc-body dos cards Permanent e Landscape.
-   Degrada sozinho: enquanto as fotos de assets/compare/ nao existirem, o slot
-   mostra o gradiente do design system + rotulos + marcador [TO CONFIRM].
-   As <img> nascem SEM src (so data-src) e o JS so promove a src depois de um
-   HEAD 200 - assim nao ha imagem quebrada nem erro de console no preview. */
+
 .cmp{margin:2px 0 20px}
 .cmp-box{--pos:50%;position:relative;width:100%;aspect-ratio:16/9;border-radius:14px;overflow:hidden;
   border:1px solid rgba(255,206,123,.5);box-shadow:0 10px 30px rgba(34,48,28,.18);
@@ -547,7 +524,6 @@ section{position:relative}
 .cmp-note{position:absolute;left:12px;bottom:12px;z-index:6;display:flex;flex-wrap:wrap;align-items:center;gap:8px;pointer-events:none}
 .cmp-note .ph-tag{font-family:'Cinzel',serif;font-size:9.5px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;
   color:#FFF7EC;background:rgba(14,26,11,.6);border:1px solid rgba(255,206,123,.4);padding:4px 10px;border-radius:50px}
-.cmp-note .tc{font-size:10.5px;color:#FFE7C2;background:rgba(14,26,11,.62);border-bottom-color:var(--glow);text-shadow:0 1px 3px rgba(0,0,0,.5)}
 .cmp-box.has-both .cmp-note{display:none}
 .cmp-handle{position:absolute;top:0;bottom:0;left:var(--pos);width:3px;margin-left:-1.5px;z-index:7;
   background:linear-gradient(180deg,rgba(255,206,123,.28),var(--glow) 20%,var(--glow) 80%,rgba(255,206,123,.28));
@@ -566,8 +542,7 @@ section{position:relative}
   .cmp-label.r{right:10px}
   .cmp-note{left:10px;right:10px;bottom:10px;gap:6px}
 }
-/* abaixo de 480 o par "Preview + [TO CONFIRM]" quebrava em 2 linhas e encostava
-   na base; a pill Preview e redundante (os rotulos ja dizem o que e) */
+
 @media(max-width:480px){.cmp-note .ph-tag{display:none}}
 @media(prefers-reduced-motion:reduce){.cmp-box{scroll-behavior:auto}}
 /* galeria e paletas do card de interior: 3 colunas viram 1 no telefone */
@@ -755,7 +730,7 @@ section{position:relative}
 }
 @media(prefers-reduced-motion:reduce){.guar-card::before{animation:none}}
 
-/* ===== DEPOIMENTOS (placeholders estruturais - NAO PUBLICAR) ===== */
+/* ===== SERVICE EXPERIENCE ===== */
 .sec-tst{background:var(--cream);overflow:hidden}
 .tst-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;margin-top:44px}
 .tst-card{position:relative;background:var(--grad-card-luz);border:1px solid rgba(34,48,28,.1);border-radius:18px;padding:30px 26px 26px;overflow:hidden;box-shadow:0 6px 22px rgba(34,48,28,.09);transition:transform .35s,box-shadow .35s}
@@ -763,7 +738,7 @@ section{position:relative}
 .tst-card:hover{transform:translateY(-4px);box-shadow:0 16px 40px rgba(34,48,28,.15)}
 .tst-mark{font-family:'Cinzel Decorative',serif;font-weight:900;font-size:52px;line-height:.6;color:var(--terra);opacity:.4;margin-bottom:12px}
 .tst-card .tst-angle{display:block;font-family:'Cinzel',serif;font-size:10.5px;font-weight:700;letter-spacing:1.1px;text-transform:uppercase;color:var(--terra-dk);margin-bottom:10px}
-.tst-card blockquote{font-size:14.5px;color:var(--ink2);line-height:1.65;font-style:italic;margin-bottom:16px}
+.tst-card p{font-size:14.5px;color:var(--ink2);line-height:1.65;margin-top:14px}
 .tst-card cite{display:block;font-style:normal;font-size:13px;color:var(--ink);font-weight:600;line-height:1.5}
 .tst-card cite .svc-line{display:block;font-weight:500;color:var(--ink2);font-size:12.5px;margin-top:3px}
 
@@ -852,6 +827,7 @@ section{position:relative}
 .ftr a{transition:color .25s;display:inline-block;padding:11px 0;min-height:44px}
 .ftr-legal a{display:inline-block;padding:12px 4px;min-height:44px}
 .ftr a:hover{color:var(--glow)}
+.ftr a.btn.gold:hover,.ftr a.btn.gold:focus-visible{color:#3A2708}
 .ftr-cta p{font-size:13.5px;margin-bottom:14px;line-height:1.55}
 .ftr .btn{padding:15px 22px;font-size:13px;min-height:48px}
 .ftr-legal{position:relative;z-index:2;max-width:1180px;margin:40px auto 0;padding:22px 24px 0;border-top:1px solid rgba(125,161,119,.25);font-size:11.8px;line-height:1.7;text-align:center;color:#8FA087}
@@ -883,7 +859,7 @@ section{position:relative}
   .why-bento .why-card:nth-child(n){grid-column:auto;grid-row:auto}
 }
 @media(max-width:960px){
-  .hero-grid{grid-template-columns:1fr;gap:34px}
+  .hero-grid{grid-template-columns:minmax(0,1fr);gap:34px}
   /* copy PRIMEIRO no mobile: com o visual em order:-1 o H1 e o CTA caiam abaixo da dobra */
   .hero-copy{order:1}
   .hero-frame .ph{aspect-ratio:4/3}
@@ -909,11 +885,9 @@ section{position:relative}
   .why-bento{grid-template-columns:1fr}
   .fgrid{grid-template-columns:1fr}
   .hdr__logo img{height:56px}
-  /* o marcador [TO CONFIRM] como flex item quebrava a pill do pretitle em 4 linhas
-     desalinhadas; aqui ele volta a fluir como texto normal */
+
   .hero .pretitle{display:block;border-radius:14px;padding:10px 14px;line-height:1.6}
   .hero .pretitle svg{display:inline-block;vertical-align:-3px;margin-right:6px}
-  .hero .pretitle .tc{display:inline;white-space:normal}
   .marquee{height:128px;bottom:-64px}
   .marquee-bar{width:270%;padding:16px 0}
   .marquee-bar.back{transform:translate(-50%,-50%) rotate(-8deg)}
@@ -925,7 +899,7 @@ section{position:relative}
 }
 @media(max-width:600px){
   .wrap{padding:0 18px}
-  .hero{padding:56px 0 78px}
+  .hero{padding:250px 0 78px}
   .btn,.btn.lg{width:100%;font-size:14px;padding:17px 20px}
   .hero-cta{flex-direction:column;align-items:stretch}
   .hero-cta .btn{width:100%}
@@ -1010,8 +984,8 @@ section{position:relative}
 <!-- ============ 1. HERO (fase NATAL: neve + bokeh + cordao + estrelas) ============ -->
 <div class="hero-pin">
 <section class="hero" aria-labelledby="hero-h1">
-  <span class="orb tl" aria-hidden="true"></span>
-  <span class="orb br" aria-hidden="true"></span>
+  <div class="orb-field" aria-hidden="true"><span class="orb tl" aria-hidden="true"></span></div>
+  <div class="orb-field" aria-hidden="true"><span class="orb br" aria-hidden="true"></span></div>
   <div class="stars" aria-hidden="true" data-stars="26"></div>
   <div class="snowfield" aria-hidden="true" data-snow="14"></div>
   <span class="bokeh b1" aria-hidden="true"></span>
@@ -1036,7 +1010,7 @@ section{position:relative}
           <a href="#quote" class="btn lg gold">Get Your Free Quote</a>
           <a href="tel:+17816058462" class="btn ghost">Call Us: (781) 605-8462</a>
         </div>
-        <p class="micro">Free quote. No obligation. Most projects are scheduled within days of approval. <span class="tc">[TO CONFIRM: exact timeframe]</span></p>
+        <p class="micro">Free quote. No obligation. Most projects are scheduled within days of approval. </p>
       </div>
     </div>
   </div>
@@ -1062,8 +1036,7 @@ section{position:relative}
         <p>Big-company quality, fair pricing</p>
       </div>
     </div>
-    <p class="tc-note sr-hidden"><b>[TO CONFIRM]</b> If the company is licensed and insured, add a 5th trust item: "Licensed and insured." Do not publish without confirmation.</p>
-  </div>
+    </div>
 </section>
 <!-- marquee agora DENTRO do hero (ronda 5f): sobreposto na fronteira hero x problema -->
   <div class="marquee" aria-hidden="true">
@@ -1077,7 +1050,7 @@ section{position:relative}
 <!-- ============ 2. PROBLEMA (fase NATAL: neve sutil) ============ -->
 <section class="sec sec-problem on-dark" aria-labelledby="problem-h2">
   <div class="sec-photobg" style="background-image:url(assets/sections/bg-problema.jpg)" aria-hidden="true"></div>
-  <span class="orb tl" aria-hidden="true"></span>
+  <div class="orb-field" aria-hidden="true"><span class="orb tl" aria-hidden="true"></span></div>
   <div class="snowfield" aria-hidden="true" data-snow="7"></div>
   <div class="wrap">
     <div class="center maxw sr-hidden">
@@ -1095,8 +1068,7 @@ section{position:relative}
       <article class="prob-card sr-hidden"><span class="prob-ico" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M3 10l9-6 9 6v10H3z"/><path d="M6.5 20v-6h11v6M6.5 16.5h11"/></svg></span><p>Then the bins go back in the garage, where they take up space for eleven months and come out worse than they went in.</p></article>
     </div>
     <p class="prob-bridge sr-hidden">It doesn't have to be your project.<br><b>It can just be your view.</b></p>
-    <p class="tc-note sr-hidden"><b>[TO CONFIRM]</b> The faded night-house background is a moodboard placeholder &mdash; replace with a real project photo before publishing.</p>
-  </div>
+    </div>
 </section>
 
 <!-- ============ 3. SOLUCAO (fase CLARA - sem efeito de Natal) ============ -->
@@ -1163,12 +1135,12 @@ section{position:relative}
       <!-- Bloco 1 - Natal: card NOTURNO com neve e bokeh dentro -->
       <article class="svc night sr-hidden">
         <div class="svc-media">
-          <img class="svc-img" src="assets/sections/card-christmas.jpg" alt="Home roofline traced with warm white Christmas lights at night (placeholder - real project photo pending)">
+          <img class="svc-img" src="assets/sections/card-christmas.jpg" alt="Home roofline traced with warm white Christmas lights at night">
           <div class="svc-scrim" aria-hidden="true"></div>
           <div class="snowfield" aria-hidden="true" data-snow="9"></div>
           <span class="bokeh b1" aria-hidden="true"></span>
           <span class="bokeh b4" aria-hidden="true"></span>
-          <div class="svc-media-label"><span class="ph-tag">Christmas lighting</span><span class="tc">[TO CONFIRM] placeholder photo</span></div>
+          <div class="svc-media-label"><span class="ph-tag">Christmas lighting</span></div>
         </div>
         <div class="svc-body">
           <span class="svc-badge">Rental &mdash; Nothing to Buy, Nothing to Store</span>
@@ -1202,7 +1174,7 @@ section{position:relative}
           <div class="snowfield" aria-hidden="true" data-snow="9"></div>
           <span class="bokeh b2" aria-hidden="true"></span>
           <span class="bokeh b3" aria-hidden="true"></span>
-          <div class="svc-media-label"><span class="ph-tag">Interior decor</span><span class="tc">[TO CONFIRM] placeholder photo</span></div>
+          <div class="svc-media-label"><span class="ph-tag">Interior decor</span></div>
         </div>
         <div class="svc-body">
           <span class="svc-badge">Interior &amp; Entryway Decor</span>
@@ -1235,7 +1207,7 @@ section{position:relative}
               <span class="igal-cap">Decorated trees</span>
             </li>
           </ul>
-          <p class="igal-note"><span class="ph-tag">Preview</span><span class="tc">[TO CONFIRM] placeholder photo</span></p>
+          <p class="igal-note"><span class="ph-tag">Preview</span></p>
 
           <!-- Sub-bloco: as 3 combinacoes de cor (nomes exatos do cliente) -->
           <div class="pal">
@@ -1269,9 +1241,9 @@ section{position:relative}
       <!-- Bloco 3 - Permanente: card CLARO, sem efeito de Natal. Imagem a esquerda (ritmo alternado com 4 cards) -->
       <article class="svc day sr-hidden">
         <div class="svc-media">
-          <img class="svc-img" src="assets/sections/card-permanent.jpg" alt="Home facade and steps lit with warm architectural lighting at night (placeholder - real project photo pending)">
+          <img class="svc-img" src="assets/sections/card-permanent.jpg" alt="Home facade and steps lit with warm architectural lighting at night">
           <div class="svc-scrim" aria-hidden="true"></div>
-          <div class="svc-media-label"><span class="ph-tag">Permanent lighting</span><span class="tc">[TO CONFIRM] placeholder photo</span></div>
+          <div class="svc-media-label"><span class="ph-tag">Permanent lighting</span></div>
         </div>
         <div class="svc-body">
           <span class="svc-badge">Purchase + Installation</span>
@@ -1301,7 +1273,7 @@ section{position:relative}
               </div>
               <span class="cmp-label l">Warm White</span>
               <span class="cmp-label r">RGBW Color</span>
-              <div class="cmp-note"><span class="ph-tag">Preview</span><span class="tc">[TO CONFIRM] placeholder photo</span></div>
+              <div class="cmp-note"><span class="ph-tag">Preview</span></div>
               <div class="cmp-handle" role="slider" tabindex="0" aria-label="Compare warm white and RGBW color on the same home. Use the left and right arrow keys." aria-valuemin="0" aria-valuemax="100" aria-valuenow="50" aria-valuetext="50 percent warm white, 50 percent RGBW color">
                 <span class="cmp-grip" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M9.5 8L5.5 12l4 4M14.5 8l4 4-4 4"/></svg></span>
               </div>
@@ -1316,9 +1288,9 @@ section{position:relative}
       <!-- Bloco 4 - Landscape: card CLARO, sem efeito de Natal. INVERTIDO: imagem a direita -->
       <article class="svc day rev sr-hidden">
         <div class="svc-media">
-          <img class="svc-img" src="assets/sections/card-landscape.jpg" alt="Patio with landscape uplighting on palms at dusk (placeholder - real project photo pending)">
+          <img class="svc-img" src="assets/sections/card-landscape.jpg" alt="Patio with landscape uplighting on palms at dusk">
           <div class="svc-scrim" aria-hidden="true"></div>
-          <div class="svc-media-label"><span class="ph-tag">Landscape lighting</span><span class="tc">[TO CONFIRM] placeholder photo</span></div>
+          <div class="svc-media-label"><span class="ph-tag">Landscape lighting</span></div>
         </div>
         <div class="svc-body">
           <span class="svc-badge">Design + Installation</span>
@@ -1347,7 +1319,7 @@ section{position:relative}
               </div>
               <span class="cmp-label l">Classic White</span>
               <span class="cmp-label r">RGBW Color</span>
-              <div class="cmp-note"><span class="ph-tag">Preview</span><span class="tc">[TO CONFIRM] placeholder photo</span></div>
+              <div class="cmp-note"><span class="ph-tag">Preview</span></div>
               <div class="cmp-handle" role="slider" tabindex="0" aria-label="Compare classic white and RGBW color on the same patio. Use the left and right arrow keys." aria-valuemin="0" aria-valuemax="100" aria-valuenow="50" aria-valuetext="50 percent classic white, 50 percent RGBW color">
                 <span class="cmp-grip" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M9.5 8L5.5 12l4 4M14.5 8l4 4-4 4"/></svg></span>
               </div>
@@ -1359,8 +1331,7 @@ section{position:relative}
         </div>
       </article>
     </div>
-    <p class="tc-note sr-hidden"><b>[TO CONFIRM]</b> All service and gallery images above are palette placeholders. Replace with real project photos before publishing &mdash; stock imagery must not be presented as our own work.</p>
-  </div>
+    </div>
 </section>
 
 <!-- ============ 5. COMO FUNCIONA - TIMELINE COM FILL NO SCROLL ============ -->
@@ -1403,7 +1374,7 @@ section{position:relative}
           <span class="step-num" aria-hidden="true">3</span>
           <div class="step-body">
             <h3>We install it</h3>
-            <p>Once you approve the design, we schedule installation. Our crew handles the ladders, the heights, the wiring, and the cleanup. You don't need to be home for most of it. <span class="tc">[TO CONFIRM]</span></p>
+            <p>Once you approve the design, we schedule installation. Our crew handles the ladders, the heights, the wiring, and the cleanup. You don't need to be home for most of it. </p>
           </div>
         </div>
         <div class="step">
@@ -1422,14 +1393,14 @@ section{position:relative}
         </div>
       </div>
     </div>
-    <p class="micro center" style="margin-top:34px">After you approve the design, installation is usually scheduled within a few days. <span class="tc">[TO CONFIRM: exact timeframe]</span></p>
+    <p class="micro center" style="margin-top:34px">After you approve the design, installation is usually scheduled within a few days. </p>
   </div>
 </section>
 
 <!-- ============ 6. DIFERENCIAIS - BENTO ASSIMETRICO ============ -->
 <section class="sec sec-why sec--forest half-bars sagev" id="why" aria-labelledby="why-h2">
   <div class="sec-photobg" style="background-image:url(assets/sections/bg-whyus.jpg)" aria-hidden="true"></div>
-  <span class="orb br sagey" aria-hidden="true"></span>
+  <div class="orb-field" aria-hidden="true"><span class="orb br sagey" aria-hidden="true"></span></div>
   <div class="wrap">
     <div class="center maxw sr-hidden">
       <span class="eyebrow sage">Why us</span>
@@ -1471,15 +1442,14 @@ section{position:relative}
     <div class="center" style="margin-top:44px">
       <a href="#quote" class="btn lg gold sr-hidden">Get Your Free Quote</a>
     </div>
-    <p class="tc-note sr-hidden"><b>[TO CONFIRM]</b> The faded landscape-lighting background is a moodboard placeholder &mdash; replace with a real project photo before publishing.</p>
-  </div>
+    </div>
 </section>
 
 <!-- ============ 7. OFERTA (fase NATAL leve: cordao de luzes piscando) ============ -->
 <section class="sec sec-offer sec--wine bar-top bar-bot" id="offer" aria-labelledby="offer-h2">
   <div class="sec-photobg" style="background-image:url(assets/sections/bg-offer.jpg)" aria-hidden="true"></div>
-  <span class="orb tl winey" aria-hidden="true"></span>
-  <span class="orb br winey" aria-hidden="true"></span>
+  <div class="orb-field" aria-hidden="true"><span class="orb tl winey" aria-hidden="true"></span></div>
+  <div class="orb-field" aria-hidden="true"><span class="orb br winey" aria-hidden="true"></span></div>
   <div class="lights top" aria-hidden="true" data-lights="1"></div>
   <div class="wrap">
     <div class="center maxw sr-hidden">
@@ -1503,7 +1473,7 @@ section{position:relative}
         </ul>
         <p class="micro" style="margin-top:20px">Holiday installation calendars fill up before the season starts. The earlier you book, the more dates you get to choose from.</p>
       </div>
-      <!-- [TO CONFIRM] as 3 fotos circulares (medalhoes) sao PLACEHOLDER (reaproveitadas do cluster Guarantee). Trocar por fotos reais antes de publicar. -->
+
       <div class="offer-box-wrap sr-hidden">
         <!-- Medalhao 1 (principal, 172px): canto SUPERIOR DIREITO, sangra por cima da borda conic -->
         <div class="price-medal" aria-hidden="true">
@@ -1533,8 +1503,7 @@ section{position:relative}
         </div>
       </div>
     </div>
-    <p class="tc-note sr-hidden"><b>[TO CONFIRM]</b> If there is an official deadline for the 10% discount, add it here: "Offer valid through [DATE]." Do not publish an invented deadline. Also: the 3 circular photos around this card and the faded night-house background are placeholders &mdash; replace with real project photos.</p>
-  </div>
+    </div>
 </section>
 
 <!-- ============ 8. GARANTIA (selo giratorio - fase clara, sem Natal) ============ -->
@@ -1607,36 +1576,32 @@ section{position:relative}
         <p class="micro sr-hidden">Questions about coverage on your specific project? Ask us in your free quote. We'll put it in writing.</p>
       </div>
     </div>
-    <p class="tc-note sr-hidden"><b>[TO CONFIRM]</b> The photos in the Full Service cluster are placeholder crops from the moodboard. Replace with real project photos before publishing.</p>
-  </div>
+    </div>
 </section>
 
-<!-- ============ 9. PROVA SOCIAL (PLACEHOLDERS ESTRUTURAIS - NAO PUBLICAR) ============ -->
+<!-- ============ 9. SERVICE EXPERIENCE ============ -->
 <section class="sec sec-tst sec--cream" id="testimonials" aria-labelledby="tst-h2">
   <div class="wrap">
     <div class="center maxw sr-hidden">
-      <span class="eyebrow terra">Social proof</span>
-      <h2 id="tst-h2">What our clients say</h2>
+      <span class="eyebrow terra">Your lighting experience</span>
+      <h2 id="tst-h2">Enjoy the lights. Leave the work to us.</h2>
+      <p class="lead">A clear design, a complete installation, and support throughout the season.</p>
     </div>
-    <p class="tc-note sr-hidden" style="margin-top:18px"><b>[TO CONFIRM - real testimonials needed]</b> The three blocks below are structural placeholders only. <b>Do not publish.</b> Replace with real testimonials including name, neighborhood/city, and service type. If no real testimonials exist yet, swap this section for a gallery of real projects with descriptive captions &mdash; honest visual proof converts better than empty social proof.</p>
     <div class="tst-grid">
       <article class="tst-card sr-hidden">
-        <div class="tst-mark" aria-hidden="true">&ldquo;</div>
-        <span class="tst-angle"><span class="tc">[TO CONFIRM - real testimonial needed]</span><br>Suggested angle: the relief of done-for-you</span>
-        <blockquote><span class="tc w">[Client quote about not having to do anything &mdash; placeholder]</span></blockquote>
-        <cite>&mdash; <span class="tc">[First Name L.]</span><span class="svc-line"><span class="tc">[TO CONFIRM: Neighborhood / City]</span> &middot; Christmas Lighting</span></cite>
+        <span class="tst-angle">Less on your holiday to-do list</span>
+        <h3>No ladders. No tangled lights.</h3>
+        <p>We design, install, maintain, take down, and store your Christmas lighting. You get to enjoy the season while our crew handles the work.</p>
       </article>
       <article class="tst-card sr-hidden">
-        <div class="tst-mark" aria-hidden="true">&ldquo;</div>
-        <span class="tst-angle"><span class="tc">[TO CONFIRM - real testimonial needed]</span><br>Suggested angle: the preview before installation</span>
-        <blockquote><span class="tc w">[Client quote about seeing the design preview before installation &mdash; placeholder]</span></blockquote>
-        <cite>&mdash; <span class="tc">[First Name L.]</span><span class="svc-line"><span class="tc">[TO CONFIRM: Neighborhood / City]</span> &middot; Permanent Lighting</span></cite>
+        <span class="tst-angle">Designed around your property</span>
+        <h3>See the look before we install.</h3>
+        <p>Your property gets its own design and a visual preview. Review the layout and request changes before installation day.</p>
       </article>
       <article class="tst-card sr-hidden">
-        <div class="tst-mark" aria-hidden="true">&ldquo;</div>
-        <span class="tst-angle"><span class="tc">[TO CONFIRM - real testimonial needed]</span><br>Suggested angle: quality of finish vs. price</span>
-        <blockquote><span class="tc w">[Client quote about quality of finish and fair pricing &mdash; placeholder]</span></blockquote>
-        <cite>&mdash; <span class="tc">[First Name L.]</span><span class="svc-line"><span class="tc">[TO CONFIRM: Neighborhood / City]</span> &middot; Landscape Lighting</span></cite>
+        <span class="tst-angle">Support through the season</span>
+        <h3>Someone to call when you need us.</h3>
+        <p>Maintenance for installation-related issues is included with your Christmas lighting service. If something needs attention, contact our crew.</p>
       </article>
     </div>
   </div>
@@ -1644,7 +1609,7 @@ section{position:relative}
 
 <!-- ============ 10. SOBRE ============ -->
 <section class="sec sec-about sec--dusk" id="about" aria-labelledby="about-h2">
-  <span class="orb br" aria-hidden="true"></span>
+  <div class="orb-field" aria-hidden="true"><span class="orb br" aria-hidden="true"></span></div>
   <div class="wrap">
     <div class="about-split">
       <div class="about-visual sr-hidden">
@@ -1715,7 +1680,7 @@ section{position:relative}
       </details>
       <details class="faq-item sr-hidden">
         <summary>How long does it take?<span class="fq-ico" aria-hidden="true"></span></summary>
-        <div class="faq-ans">Once you approve the design, installation is typically scheduled within a few days. <span class="tc">[TO CONFIRM: exact window]</span> Timelines get tighter as the holiday season approaches, so earlier bookings get more scheduling options.</div>
+        <div class="faq-ans">Once you approve the design, installation is typically scheduled within a few days.  Timelines get tighter as the holiday season approaches, so earlier bookings get more scheduling options.</div>
       </details>
       <details class="faq-item sr-hidden">
         <summary>What if a light goes out mid-season?<span class="fq-ico" aria-hidden="true"></span></summary>
@@ -1738,10 +1703,6 @@ section{position:relative}
         <div class="faq-ans">We serve Massachusetts, New Hampshire, and Rhode Island. Tell us where the property is and we'll confirm coverage with your free quote.</div>
       </details>
       <details class="faq-item sr-hidden">
-        <summary>Is there a minimum project size?<span class="fq-ico" aria-hidden="true"></span></summary>
-        <div class="faq-ans"><span class="tc w">[TO CONFIRM]</span></div>
-      </details>
-      <details class="faq-item sr-hidden">
         <summary>How much does it cost?<span class="fq-ico" aria-hidden="true"></span></summary>
         <div class="faq-ans">Every property is different, so pricing depends on the design, the size of the roofline or landscape, and the service you choose. The quote is free and there's no obligation. And your first service is 10% off.</div>
       </details>
@@ -1751,8 +1712,8 @@ section{position:relative}
 
 <!-- ============ 12. CTA FINAL + FORM (fase NATAL: neve + bokeh) ============ -->
 <section class="sec sec-quote bar-top" id="quote" aria-labelledby="quote-h2">
-  <span class="orb tl" aria-hidden="true"></span>
-  <span class="orb br" aria-hidden="true"></span>
+  <div class="orb-field" aria-hidden="true"><span class="orb tl" aria-hidden="true"></span></div>
+  <div class="orb-field" aria-hidden="true"><span class="orb br" aria-hidden="true"></span></div>
   <div class="stars" aria-hidden="true" data-stars="18"></div>
   <div class="snowfield" aria-hidden="true" data-snow="12"></div>
   <span class="bokeh b2" aria-hidden="true"></span>
@@ -1854,8 +1815,7 @@ section{position:relative}
         <ul>
           <li>Phone: <a class="tel-lnk" href="tel:+17816058462">(781) 605-8462</a></li>
           <li>Address: Massachusetts, New Hampshire, Rhode Island</li>
-          <li><span class="tc">[TO CONFIRM: Instagram / social links]</span></li>
-        </ul>
+          </ul>
       </div>
       <div class="ftr-cta">
         <h4>Ready for a free quote?</h4>
@@ -1865,9 +1825,8 @@ section{position:relative}
     </div>
   </div>
   <div class="ftr-legal">
-    <p>&copy; <span id="yr">2026</span> Elf Decor Pro. All rights reserved. &middot; <a href="#">Privacy Policy</a> &middot; <a href="#">Terms of Service</a></p>
-    <p class="tc-note" style="margin-top:16px;text-align:left"><b>[TO CONFIRM]</b> Privacy Policy and Terms of Service must exist as real pages before these links go live.</p>
-  </div>
+    <p>&copy; <span id="yr">2026</span> Elf Decor Pro. All rights reserved.</p>
+    </div>
 </footer>
 
 <!-- sticky CTA mobile -->
@@ -1884,14 +1843,7 @@ section{position:relative}
   var yr = document.getElementById('yr');
   if(yr) yr.textContent = new Date().getFullYear();
 
-  /* ---------- COMPARADOR ANTES/DEPOIS (arrastar / touch / teclado) ----------
-     >>> CHAVE UNICA: vire para true quando os 4 JPG estiverem em assets/compare/
-         (compare-permanent-white/rgbw.jpg e compare-landscape-white/rgbw.jpg).
-         Ver assets/compare/LEIA-ME.md.
-     Com false as <img> ficam SEM src: zero request, zero 404, zero erro de
-     console, e o slot mostra o gradiente do design system + os rotulos + o
-     marcador [TO CONFIRM] placeholder photo. Nada de imagem quebrada.
-     Com true as URLs de data-src sao promovidas e o marcador some sozinho. */
+
   var COMPARE_PHOTOS_READY = true;
 
   Array.prototype.forEach.call(document.querySelectorAll('[data-cmp]'), function(box){
@@ -1976,14 +1928,7 @@ section{position:relative}
     });
   });
 
-  /* ---------- FOTOS DO CARD INTERIOR CHRISTMAS DECOR ----------
-     >>> CHAVE UNICA: vire para true quando os 4 JPG estiverem em assets/interiors/
-         (interior-portico, interior-wreath, interior-garland-mantel, interior-tree).
-         Ver assets/interiors/LEIA-ME.md.
-     Com false as <img> ficam SEM src: zero request, zero 404, zero erro de console,
-     e cada slot mostra o gradiente do design system + a legenda + o marcador
-     [TO CONFIRM] placeholder photo. Mesma decisao dos comparadores: NAO ha sondagem
-     do arquivo (fetch HEAD / new Image imprime 404 em vermelho no console). */
+
   var INTERIOR_PHOTOS_READY = true;
 
   if(INTERIOR_PHOTOS_READY){
@@ -2297,7 +2242,7 @@ section{position:relative}
     var s = Math.max(W / iw, H / ih);
     var sw = W / s, sh = H / s;
     ctx.clearRect(0, 0, W, H);
-    ctx.drawImage(im, Math.max(0, iw - sw) * (HI ? 1 : .72), (ih - sh) / 2, sw, sh, 0, 0, W, H);
+    ctx.drawImage(im, Math.max(0, iw - sw) * (HI ? 1 : .72), HI ? (ih - sh) / 2 : 0, sw, sh, 0, 0, W, H);
     loadedAny = true;
   }
 
@@ -2306,6 +2251,10 @@ section{position:relative}
   function progress(){
     var vh = window.innerHeight || document.documentElement.clientHeight;
     var r = pin.getBoundingClientRect();
+    if(getComputedStyle(hero).position !== 'sticky'){
+      var visual = stage.getBoundingClientRect();
+      return Math.max(0, Math.min(1, -visual.top / Math.max(1, visual.height * .8)));
+    }
     var dist = r.height - vh;
     if(dist > 4){ /* pinned: anima enquanto o hero fica preso; so libera a pagina em 100% */
       if(r.top >= 0) return 0;
@@ -2333,6 +2282,13 @@ section{position:relative}
     if(idx === painted) return; /* so redesenha quando o frame desenhado muda */
     paint(im);
     painted = idx;
+  }
+
+  /* Reduced motion loads one still frame; progressive loading must not animate it. */
+  if(reduce){
+    load(N - 1, function(){ draw(); });
+    window.addEventListener('resize', function(){ draw(); });
+    return;
   }
 
   /* --- preload progressivo: 0 imediato, 24 primeiros na hora, resto em idle --- */
