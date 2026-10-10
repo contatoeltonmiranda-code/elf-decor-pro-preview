@@ -278,10 +278,13 @@ section{position:relative}
 .hero-pin{height:calc(100vh + 115vh);position:relative;z-index:40}
 .hero{position:sticky;top:0;height:100vh;display:flex;flex-direction:column;padding:96px 0 0;background:radial-gradient(ellipse 90% 70% at 70% 20%,#1B2E18 0%,#0E1A0B 64%);overflow-x:clip;overflow-y:visible;isolation:isolate}
 .hero>.wrap{width:100%;margin:auto;flex:1 1 auto;display:flex;align-items:center}
-/* tablet/mobile: sem pin (conteudo empila) — animacao corre no scroll normal do hero */
+/* Mobile keeps the entire hero pinned while the scrub completes, then releases its tall copy. */
 @media(max-width:1024px){.hero-pin{height:auto}
   .hero{position:static;height:auto;min-height:0;padding:250px 0 78px}
-  .hero>.wrap{display:block;margin:0}}
+  .hero>.wrap{display:block;margin:0}
+  .hero-pin.is-mobile-pinned{height:calc(var(--hero-natural-height) + 115svh)}
+  .hero-pin.is-mobile-pinned .hero{position:sticky;top:var(--hero-sticky-top)}
+}
 .hero-grid{display:grid;grid-template-columns:minmax(0,1.08fr) minmax(0,.92fr);gap:52px;align-items:center;position:relative;z-index:3}
 .hero-grid>*,.proc-split>*,.quote-grid>*,.guar-split>*,.about-split>*,.offer-wrap>*,.svc>*{min-width:0}
 .hero .pretitle{display:inline-flex;align-items:center;gap:9px;font-family:'Cinzel',serif;font-size:11.5px;font-weight:600;letter-spacing:1.1px;text-transform:uppercase;color:var(--glow);border:1px solid var(--linha);border-radius:50px;padding:8px 16px;margin-bottom:20px;line-height:1.5;max-width:100%;overflow-wrap:anywhere}
@@ -2178,7 +2181,7 @@ section{position:relative}
 <script>
 /* ===== HERO SCROLL SCRUB (ronda 5c) =====
    96 frames WebP (video Veo 3) desenhados em canvas conforme o scroll do hero.
-   progress 0 = topo do hero no topo da viewport | 1 = base do hero sai da viewport.
+   Progress spans the sticky travel; the hero releases after the final frame.
    Preload progressivo (24 primeiros na hora, resto em idle). Frame nao carregado =
    desenha o carregado mais proximo (nunca tela vazia). Sem JS/canvas: poster <img>
    continua visivel atras do canvas. prefers-reduced-motion: frame final estatico. */
@@ -2242,18 +2245,36 @@ section{position:relative}
     var s = Math.max(W / iw, H / ih);
     var sw = W / s, sh = H / s;
     ctx.clearRect(0, 0, W, H);
-    ctx.drawImage(im, Math.max(0, iw - sw) * (HI ? 1 : .72), HI ? (ih - sh) / 2 : 0, sw, sh, 0, 0, W, H);
+    var desktopCrop = !mobile.matches;
+    ctx.drawImage(im, Math.max(0, iw - sw) * (desktopCrop ? 1 : .72), desktopCrop ? (ih - sh) / 2 : 0, sw, sh, 0, 0, W, H);
     loadedAny = true;
   }
 
   /* --- progress do hero no scroll (clamp 0-1) --- */
-  var pin = hero.parentElement; /* .hero-pin: distancia de scroll enquanto o hero fica preso */
+  var pin = hero.parentElement;
+  var header = document.querySelector('.hdr');
+  var mobile = window.matchMedia('(max-width:1024px)');
+  function syncPinLayout(){
+    var active = mobile.matches && !reduce;
+    pin.classList.toggle('is-mobile-pinned', active);
+    if(active){
+      pin.style.setProperty('--hero-natural-height', hero.getBoundingClientRect().height + 'px');
+      pin.style.setProperty('--hero-sticky-top', (header ? header.getBoundingClientRect().height : 0) + 'px');
+    }
+  }
+  syncPinLayout();
+  if('ResizeObserver' in window){
+    var layoutObserver = new ResizeObserver(function(){ syncPinLayout(); draw(); });
+    layoutObserver.observe(hero);
+    if(header) layoutObserver.observe(header);
+  }
   function progress(){
     var vh = window.innerHeight || document.documentElement.clientHeight;
     var r = pin.getBoundingClientRect();
-    if(getComputedStyle(hero).position !== 'sticky'){
-      var visual = stage.getBoundingClientRect();
-      return Math.max(0, Math.min(1, -visual.top / Math.max(1, visual.height * .8)));
+    if(mobile.matches){
+      var top = header ? header.getBoundingClientRect().height : 0;
+      var distance = r.height - hero.getBoundingClientRect().height;
+      return distance > 0 ? Math.max(0, Math.min(1, (top - r.top) / distance)) : 1;
     }
     var dist = r.height - vh;
     if(dist > 4){ /* pinned: anima enquanto o hero fica preso; so libera a pagina em 100% */
@@ -2279,6 +2300,8 @@ section{position:relative}
       }
     }
     if(!im) return; /* poster cobre ate o 1o frame chegar */
+    stage.dataset.scrollProgress = p.toFixed(3);
+    canvas.dataset.frame = String(idx);
     if(idx === painted) return; /* so redesenha quando o frame desenhado muda */
     paint(im);
     painted = idx;
@@ -2287,12 +2310,13 @@ section{position:relative}
   /* Reduced motion loads one still frame; progressive loading must not animate it. */
   if(reduce){
     load(N - 1, function(){ draw(); });
-    window.addEventListener('resize', function(){ draw(); });
+    window.addEventListener('resize', function(){ syncPinLayout(); draw(); });
     return;
   }
 
   /* --- preload progressivo: 0 imediato, 24 primeiros na hora, resto em idle --- */
   load(0, function(){ draw(); });
+  load(N - 1, function(){ draw(); }); /* Prime the release frame before the idle queue. */
   for(var i = 1; i < 24; i++) load(i, function(){ draw(); });
   var next = 24;
   function pump(){
@@ -2314,7 +2338,7 @@ section{position:relative}
       requestAnimationFrame(function(){ ticking = false; draw(); });
     }, {passive: true});
   }
-  window.addEventListener('resize', function(){ draw(); });
+  window.addEventListener('resize', function(){ syncPinLayout(); draw(); });
   if(document.readyState === 'complete') draw();
   else window.addEventListener('load', function(){ draw(); });
 })();
