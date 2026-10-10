@@ -316,6 +316,12 @@ section{position:relative}
 
 /* ===== TRUST BAR (divisorias verticais gradient - ref: KETOX .bs-item) ===== */
 .trust{background:transparent;padding:36px 0 34px;overflow:hidden;margin-top:auto;position:relative;z-index:3}
+@media(min-width:1025px){.trust{padding-bottom:86px}}
+@media(min-width:1025px) and (max-height:850px){
+  .hero h1{font-size:38px;margin-bottom:14px}
+  .hero .sub{margin-bottom:22px}
+  .trust{padding-top:24px}
+}
 .trust-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:26px 0;position:relative;z-index:2}
 .trust-item{position:relative;text-align:center;padding:6px 22px}
 .trust-item:not(:nth-child(4n+1))::before{content:"";position:absolute;left:0;top:8%;height:84%;width:1px;background:linear-gradient(to bottom,transparent,rgba(255,206,123,.4) 22%,rgba(255,206,123,.4) 78%,transparent)}
